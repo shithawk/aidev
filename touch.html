@@ -1,0 +1,672 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Aura Touch Synth & FX Canvas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      touch-action: none; /* Block browser zoom/scroll gestures on canvas */
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+    .custom-slider::-webkit-slider-thumb {
+      background: #818cf8;
+      border-radius: 9999px;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between text-slate-100 font-sans select-none">
+
+  <!-- Top Instrument & FX Dashboard -->
+  <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-4 z-10 flex flex-wrap gap-4 items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-indigo-500/10 border border-indigo-500/30 rounded-xl flex items-center justify-center text-indigo-400 animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Aura Canvas</h1>
+        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Touch XY Synth Playground</p>
+      </div>
+    </div>
+
+    <!-- Controls Menu -->
+    <div class="flex flex-wrap items-center gap-4">
+      <!-- Synth Character -->
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Synth voice</span>
+        <select id="synthPreset" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
+          <option value="warm-saw">Warm Sawtooth</option>
+          <option value="fm-metallic">FM Metallic Bell</option>
+          <option value="hollow-square">Hollow Square</option>
+          <option value="analog-triangle">Analog Triangle</option>
+        </select>
+      </div>
+
+      <!-- Musical Scale Selection -->
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Scale (X-Axis)</span>
+        <select id="scaleSelect" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
+          <option value="minorPentatonic">A Minor Pentatonic (Dreamy)</option>
+          <option value="phrygianDominant">G Phrygian Dominant (Mystic)</option>
+          <option value="majorLydian">C Lydian (Bright Space)</option>
+          <option value="chromatic">Chromatic (Experimental)</option>
+        </select>
+      </div>
+
+      <!-- Y-Axis Effect Target Selection -->
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Y-Axis modulation</span>
+        <select id="effectSelect" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500 cursor-pointer">
+          <option value="filter">Filter Sweep & Resonance</option>
+          <option value="waveshaper">Saturated Overdrive & Gain</option>
+          <option value="fmModulation">FM Ring Mod & Vibrato</option>
+        </select>
+      </div>
+
+      <!-- Master volume slider -->
+      <div class="flex flex-col gap-1 w-24">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Master Volume</span>
+        <input type="range" id="masterVolume" min="0" max="0.8" step="0.05" value="0.4" class="custom-slider w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-400">
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Fullscreen Audio Canvas Area -->
+  <main class="relative w-full h-full flex-grow overflow-hidden">
+    <!-- Unblock Audio Overlay -->
+    <div id="startOverlay" class="absolute inset-0 bg-slate-950/90 z-40 flex flex-col items-center justify-center p-6 text-center">
+      <div class="max-w-md space-y-6">
+        <div class="inline-flex p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 mb-2">
+          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+        </div>
+        <h2 class="text-3xl font-extrabold tracking-tight">Interactive Soundboard</h2>
+        <p class="text-slate-400 text-sm">
+          Tap anywhere to unlock the synthesizer. Move your cursor or use multiple fingers to play notes on the horizontal axis and twist deep electronic effects on the vertical axis!
+        </p>
+        <button id="startBtn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+          ENTER CANVAS PLAYGROUND
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Canvas -->
+    <canvas id="synthCanvas" class="w-full h-full"></canvas>
+
+    <!-- Bottom Instructions Hud overlay -->
+    <div class="absolute bottom-6 left-6 right-6 pointer-events-none flex justify-between items-end">
+      <div class="bg-slate-950/70 border border-slate-800/80 px-4 py-2.5 rounded-xl backdrop-blur-md text-xs text-slate-300 flex flex-col gap-1 shadow-lg">
+        <span class="font-bold text-slate-100">Live XY Coordinates:</span>
+        <div id="coordinateHud">Touch the canvas to play</div>
+      </div>
+      <div class="bg-slate-950/70 border border-slate-800/80 px-4 py-2.5 rounded-xl backdrop-blur-md text-xs text-slate-400 text-right shadow-lg hidden md:block">
+        <span>X-Axis: Low Pitch → High Pitch</span><br/>
+        <span id="yAxisLabel">Y-Axis: Filter Modulation</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Scale Pitch Maps (Hz) ---
+    // Beautiful, non-clashing musical frequencies across 3 octaves
+    const SCALES = {
+      minorPentatonic: [
+        110.00, 123.47, 130.81, 146.83, 164.81, 196.00, 220.00, 
+        246.94, 261.63, 293.66, 329.63, 392.00, 440.00, 493.88, 
+        523.25, 587.33, 659.25, 783.99, 880.00
+      ], // A Minor Pentatonic
+      phrygianDominant: [
+        97.99, 103.83, 116.54, 123.47, 130.81, 146.83, 155.56, 
+        195.99, 207.65, 233.08, 246.94, 261.63, 293.66, 311.13, 
+        391.99, 415.30, 466.16, 493.88, 523.25
+      ], // G Phrygian Dominant
+      majorLydian: [
+        130.81, 146.83, 164.81, 185.00, 196.00, 220.00, 246.94, 
+        261.63, 293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 
+        523.25, 587.33, 659.25, 739.99, 783.99
+      ], // C Lydian (F# accent)
+      chromatic: [
+        110.00, 116.54, 123.47, 130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 
+        185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 261.63, 277.18, 293.66, 
+        311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.25
+      ]
+    };
+
+    // Note name helper (rough guide approximation)
+    const scaleNames = {
+      minorPentatonic: ['A', 'B', 'C', 'D', 'E', 'G'],
+      phrygianDominant: ['G', 'Ab', 'B', 'C', 'D', 'Eb', 'F'],
+      majorLydian: ['C', 'D', 'E', 'F#', 'G', 'A', 'B'],
+      chromatic: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    };
+
+    // --- Audio Synthesis Setup ---
+    let audioCtx = null;
+    let mainGainNode = null;
+    let isAudioActive = false;
+    
+    // Tracking active sound voices (polyphonic touch)
+    const activeVoices = {};
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      mainGainNode = audioCtx.createGain();
+      mainGainNode.gain.setValueAtTime(parseFloat(document.getElementById('masterVolume').value), audioCtx.currentTime);
+      mainGainNode.connect(audioCtx.destination);
+
+      isAudioActive = true;
+      document.getElementById('startOverlay').classList.add('hidden');
+    }
+
+    // Distortion waveshaper curve generator
+    function makeDistortionCurve(amount) {
+      const k = typeof amount === 'number' ? amount : 50;
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      const deg = Math.PI / 180;
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+      }
+      return curve;
+    }
+
+    // --- Voice class for individual audio nodes per touch point ---
+    class SynthVoice {
+      constructor(freq, yFactor, targetPreset, targetEffect) {
+        this.ctx = audioCtx;
+        this.baseFreq = freq;
+        this.yFactor = yFactor; // Normalised 0.0 to 1.0 (Y axis position)
+        this.preset = targetPreset;
+        this.effect = targetEffect;
+
+        // Create Sound Source Components
+        this.osc = this.ctx.createOscillator();
+        this.subOsc = this.ctx.createOscillator(); // Sub bass or layer osc
+        
+        // Modulator for FM Synth preset
+        this.fmModulator = null;
+        this.fmModGain = null;
+
+        // FX nodes
+        this.filter = this.ctx.createBiquadFilter();
+        this.waveshaper = this.ctx.createWaveShaper();
+        this.gainNode = this.ctx.createGain();
+
+        // Configure Waveshaper
+        this.waveshaper.curve = makeDistortionCurve(0);
+        this.waveshaper.oversample = '4x';
+
+        // Connect signal chain
+        this.osc.connect(this.filter);
+        this.subOsc.connect(this.filter);
+        
+        this.filter.connect(this.waveshaper);
+        this.waveshaper.connect(this.gainNode);
+        this.gainNode.connect(mainGainNode);
+
+        // Apply Preset Characteristics
+        this.applyPreset();
+
+        // Initial sweep values based on Y-axis
+        this.updateModulation(freq, yFactor);
+
+        // Quick ramp up to avoid audio clicks (Attack)
+        const now = this.ctx.currentTime;
+        this.gainNode.gain.setValueAtTime(0, now);
+        this.gainNode.gain.linearRampToValueAtTime(0.35, now + 0.05);
+
+        // Start Oscillators
+        this.osc.start(now);
+        this.subOsc.start(now);
+      }
+
+      applyPreset() {
+        const now = this.ctx.currentTime;
+        if (this.preset === 'warm-saw') {
+          this.osc.type = 'sawtooth';
+          this.subOsc.type = 'triangle';
+          this.subOsc.frequency.setValueAtTime(this.baseFreq / 2, now); // Octave lower sub-bass
+        } 
+        else if (this.preset === 'fm-metallic') {
+          this.osc.type = 'sine';
+          this.subOsc.type = 'sine';
+          this.subOsc.frequency.setValueAtTime(this.baseFreq * 1.5, now); // Fifth harmonic
+
+          // Setup FM routing
+          this.fmModulator = this.ctx.createOscillator();
+          this.fmModGain = this.ctx.createGain();
+          
+          this.fmModulator.frequency.setValueAtTime(this.baseFreq * 2.5, now);
+          this.fmModGain.gain.setValueAtTime(120, now);
+
+          this.fmModulator.connect(this.fmModGain);
+          this.fmModGain.connect(this.osc.frequency);
+          this.fmModulator.start(now);
+        } 
+        else if (this.preset === 'hollow-square') {
+          this.osc.type = 'square';
+          this.subOsc.type = 'square';
+          this.subOsc.frequency.setValueAtTime(this.baseFreq / 2, now);
+        } 
+        else if (this.preset === 'analog-triangle') {
+          this.osc.type = 'triangle';
+          this.subOsc.type = 'sine';
+          this.subOsc.frequency.setValueAtTime(this.baseFreq, now);
+        }
+      }
+
+      updateModulation(freq, yFactor) {
+        const now = this.ctx.currentTime;
+        
+        // Update basic frequencies cleanly (Portamento)
+        this.osc.frequency.setTargetAtTime(freq, now, 0.04);
+        if (this.preset === 'fm-metallic' && this.fmModulator) {
+          this.fmModulator.frequency.setTargetAtTime(freq * 2.5, now, 0.04);
+        }
+        if (this.preset === 'warm-saw' || this.preset === 'hollow-square') {
+          this.subOsc.frequency.setTargetAtTime(freq / 2, now, 0.04);
+        } else {
+          this.subOsc.frequency.setTargetAtTime(freq, now, 0.04);
+        }
+
+        // Apply Y-axis Dynamic Modulation Effects
+        if (this.effect === 'filter') {
+          // Reset other effects to baseline
+          this.waveshaper.curve = makeDistortionCurve(0);
+          
+          // Y-Factor controls Low Pass Filter Sweep (Top = highly open filter, Bottom = muffled/bass heavy)
+          const filterCutoff = 120 + (yFactor * 9000); // 120Hz to 9.1kHz
+          const filterQ = 0.5 + (yFactor * 14); // Low Q at bottom, highly resonant squeal at top
+          
+          this.filter.type = 'lowpass';
+          this.filter.frequency.setTargetAtTime(filterCutoff, now, 0.03);
+          this.filter.Q.setTargetAtTime(filterQ, now, 0.03);
+        } 
+        else if (this.effect === 'waveshaper') {
+          // Reset filter
+          this.filter.type = 'allpass';
+          
+          // Y-Factor modulates aggressive wavefolding saturation (Top = heavy distortion, Bottom = clean)
+          const saturationAmount = yFactor * 250;
+          this.waveshaper.curve = makeDistortionCurve(saturationAmount);
+        } 
+        else if (this.effect === 'fmModulation') {
+          this.filter.type = 'allpass';
+          this.waveshaper.curve = makeDistortionCurve(0);
+
+          // If FM setup is running, modulate depth. 
+          // If not FM, we modulate a dynamic vibrato/frequency oscillation
+          if (this.fmModGain) {
+            const index = yFactor * 800;
+            this.fmModGain.gain.setTargetAtTime(index, now, 0.03);
+          } else {
+            // Apply aggressive detuning (vibrato) based on Y-axis
+            const detuneValue = yFactor * 80; // Up to 80 cents detune
+            this.osc.detune.setTargetAtTime(detuneValue, now, 0.05);
+            this.subOsc.detune.setTargetAtTime(-detuneValue, now, 0.05);
+          }
+        }
+      }
+
+      stop() {
+        const now = this.ctx.currentTime;
+        this.gainNode.gain.cancelScheduledValues(now);
+        // Release phase
+        this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+        this.gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+        // Safely stop and disconnect source oscillators
+        setTimeout(() => {
+          try {
+            this.osc.stop();
+            this.subOsc.stop();
+            if (this.fmModulator) this.fmModulator.stop();
+            
+            this.osc.disconnect();
+            this.subOsc.disconnect();
+            if (this.fmModulator) {
+              this.fmModulator.disconnect();
+              this.fmModGain.disconnect();
+            }
+            this.filter.disconnect();
+            this.waveshaper.disconnect();
+            this.gainNode.disconnect();
+          } catch(e) {
+            // Catch context already suspended errors
+          }
+        }, 350);
+      }
+    }
+
+
+    // --- Canvas & Visual Art System ---
+    const canvas = document.getElementById('synthCanvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.offsetWidth;
+    let height = canvas.height = canvas.offsetHeight;
+
+    // Responsive Canvas Resize
+    window.addEventListener('resize', () => {
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    });
+
+    // Particle pool for organic touch aesthetics
+    const particles = [];
+    class TouchParticle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 6;
+        this.vy = (Math.random() - 0.5) * 6;
+        this.alpha = 1.0;
+        this.size = Math.random() * 8 + 4;
+        this.color = color;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= 0.02;
+      }
+      draw(c) {
+        c.save();
+        c.globalAlpha = this.alpha;
+        c.beginPath();
+        c.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        c.fillStyle = this.color;
+        c.shadowBlur = 15;
+        c.shadowColor = this.color;
+        c.fill();
+        c.restore();
+      }
+    }
+
+    // Keep track of touch/mouse locations and custom visual indicators
+    const pointers = {};
+
+    function getPitchData(x, y) {
+      const activeScaleKey = document.getElementById('scaleSelect').value;
+      const currentScale = SCALES[activeScaleKey];
+      
+      // Map X-position horizontally to notes index
+      const xRatio = Math.max(0, Math.min(1, x / width));
+      const noteIndex = Math.floor(xRatio * currentScale.length);
+      const targetFreq = currentScale[Math.max(0, Math.min(currentScale.length - 1, noteIndex))];
+
+      // Map Y-position (Inverted so Top of canvas = 1.0, Bottom = 0.0)
+      const yRatio = Math.max(0, Math.min(1, 1 - (y / height)));
+
+      // Human-readable descriptors
+      const names = scaleNames[activeScaleKey];
+      const noteName = names[noteIndex % names.length] + (3 + Math.floor(noteIndex / names.length));
+
+      return { frequency: targetFreq, yMod: yRatio, noteLabel: noteName, scaleSize: currentScale.length, noteIndex };
+    }
+
+    // Interactive Audio/Visual Coordinators
+    function handlePointerStart(id, x, y) {
+      if (!isAudioActive) return;
+
+      const pitchInfo = getPitchData(x, y);
+      const activePreset = document.getElementById('synthPreset').value;
+      const activeEffect = document.getElementById('effectSelect').value;
+
+      // Start Synthesizer Voice
+      const voice = new SynthVoice(pitchInfo.frequency, pitchInfo.yMod, activePreset, activeEffect);
+      
+      // Select random vibrant color per touch node
+      const hues = [260, 280, 320, 190, 160];
+      const randomHue = hues[Math.floor(Math.random() * hues.length)];
+      const color = `hsla(${randomHue}, 85%, 60%, 1)`;
+
+      // Register Pointer
+      pointers[id] = {
+        x,
+        y,
+        color,
+        frequency: pitchInfo.frequency,
+        yMod: pitchInfo.yMod,
+        noteLabel: pitchInfo.noteLabel,
+        voice
+      };
+
+      updateHudDisplay();
+    }
+
+    function handlePointerMove(id, x, y) {
+      if (!pointers[id]) return;
+
+      const pitchInfo = getPitchData(x, y);
+      const ptr = pointers[id];
+
+      ptr.x = x;
+      ptr.y = y;
+      ptr.frequency = pitchInfo.frequency;
+      ptr.yMod = pitchInfo.yMod;
+      ptr.noteLabel = pitchInfo.noteLabel;
+
+      // Dynamically push updates directly into active synth node parameters
+      ptr.voice.updateModulation(pitchInfo.frequency, pitchInfo.yMod);
+
+      // Spawn generative ambient visual particles
+      if (Math.random() < 0.45) {
+        particles.push(new TouchParticle(x, y, ptr.color));
+      }
+
+      updateHudDisplay();
+    }
+
+    function handlePointerEnd(id) {
+      if (!pointers[id]) return;
+      
+      // Stop and cleanly fade out voice synthesizer nodes
+      pointers[id].voice.stop();
+      delete pointers[id];
+
+      updateHudDisplay();
+    }
+
+    function updateHudDisplay() {
+      const hud = document.getElementById('coordinateHud');
+      const activeKeys = Object.keys(pointers);
+      
+      if (activeKeys.length === 0) {
+        hud.textContent = "Touch the canvas to play";
+        return;
+      }
+
+      const infoLines = activeKeys.map((key) => {
+        const ptr = pointers[key];
+        return `Note: <span class="text-indigo-400 font-bold">${ptr.noteLabel}</span> (${Math.round(ptr.frequency)}Hz) | Mod FX: <span class="text-pink-400 font-bold">${Math.round(ptr.yMod * 100)}%</span>`;
+      });
+
+      hud.innerHTML = infoLines.join('<br/>');
+    }
+
+    // Dynamic scale selection UI update
+    document.getElementById('effectSelect').addEventListener('change', (e) => {
+      const labels = {
+        filter: "Y-Axis: Filter Sweep & Resonance",
+        waveshaper: "Y-Axis: Overdrive Distortion Gain",
+        fmModulation: "Y-Axis: FM Vibrato Ring Modulation"
+      };
+      document.getElementById('yAxisLabel').textContent = labels[e.target.value] || "Y-Axis Modulation";
+    });
+
+    // Dynamic Master Volume slider adjustment
+    document.getElementById('masterVolume').addEventListener('input', (e) => {
+      if (mainGainNode) {
+        mainGainNode.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+      }
+    });
+
+
+    // --- Mouse Event Listeners ---
+    let isMouseDown = false;
+    canvas.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      handlePointerStart('mouse', e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isMouseDown) return;
+      handlePointerMove('mouse', e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isMouseDown) {
+        isMouseDown = false;
+        handlePointerEnd('mouse');
+      }
+    });
+
+
+    // --- Mobile Touch Event Listeners (Multi-Touch Support!) ---
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        handlePointerStart(touch.identifier, touch.clientX - rect.left, touch.clientY - rect.top);
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        handlePointerMove(touch.identifier, touch.clientX - rect.left, touch.clientY - rect.top);
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        handlePointerEnd(touch.identifier);
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        handlePointerEnd(touch.identifier);
+      }
+    }, { passive: false });
+
+
+    // --- Render Loop (Canvas Animation) ---
+    function animate() {
+      // Clear with elegant translucent fade trace for retro glowing look
+      ctx.fillStyle = 'rgba(11, 15, 25, 0.2)';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw vertical divisions corresponding to the selected musical scale grid
+      const activeScaleKey = document.getElementById('scaleSelect').value;
+      const currentScaleLength = SCALES[activeScaleKey].length;
+      const stepWidth = width / currentScaleLength;
+
+      ctx.save();
+      for (let i = 0; i < currentScaleLength; i++) {
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(i * stepWidth, 0);
+        ctx.lineTo(i * stepWidth, height);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Draw Glowing Pointer Crosshairs
+      Object.keys(pointers).forEach(id => {
+        const ptr = pointers[id];
+        
+        // Highlight active scale column
+        const noteIdx = Math.floor((ptr.x / width) * currentScaleLength);
+        ctx.save();
+        ctx.fillStyle = ptr.color.replace('1)', '0.04)');
+        ctx.fillRect(noteIdx * stepWidth, 0, stepWidth, height);
+        ctx.restore();
+
+        // Crosshair Lines
+        ctx.save();
+        ctx.strokeStyle = ptr.color.replace('1)', '0.15)');
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        
+        // Horizontal line
+        ctx.beginPath();
+        ctx.moveTo(0, ptr.y);
+        ctx.lineTo(width, ptr.y);
+        ctx.stroke();
+
+        // Vertical line
+        ctx.beginPath();
+        ctx.moveTo(ptr.x, 0);
+        ctx.lineTo(ptr.x, height);
+        ctx.stroke();
+        ctx.restore();
+
+        // Glowing center node
+        ctx.save();
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = ptr.color;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(ptr.x, ptr.y, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = ptr.color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(ptr.x, ptr.y, 24, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Text display on active cursor
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ptr.noteLabel, ptr.x, ptr.y - 36);
+      });
+
+      // Update and draw particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        } else {
+          p.draw(ctx);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Start UI
+    document.getElementById('startBtn').addEventListener('click', () => {
+      initAudio();
+    });
+
+    // Run animation
+    animate();
+
+  </script>
+</body>
+</html>
