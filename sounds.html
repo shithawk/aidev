@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sacred Geometry & Ethereal Soundscape</title>
+    <style>
+        :root {
+            --bg-color: #030305;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none; 
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #bgCanvas { z-index: 1; }
+        #fgCanvas { z-index: 2; }
+
+        .ui-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 15px;
+            background: rgba(20, 20, 25, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-active {
+            background: rgba(100, 200, 255, 0.2);
+            border-color: rgba(100, 200, 255, 0.6);
+            color: #bbf;
+        }
+
+        .instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+            letter-spacing: 2px;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .hidden {
+            opacity: 0 !important;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        
+        @media (max-width: 600px) {
+            .ui-container {
+                width: 90%;
+                gap: 10px;
+                padding: 10px;
+            }
+            button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-container" id="ui">
+        <button id="btnSound">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            Sound: Off
+        </button>
+        <button id="btnRandom">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+            Morph Shape
+        </button>
+        <button id="btnReset">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            Clear
+        </button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Enable Sound & Drag to Draw
+    </div>
+
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="fgCanvas"></canvas>
+
+    <script>
+        // --- VISUAL SETUP ---
+        const bgCanvas = document.getElementById('bgCanvas');
+        const fgCanvas = document.getElementById('fgCanvas');
+        const ctxBg = bgCanvas.getContext('2d', { alpha: false });
+        const ctxFg = fgCanvas.getContext('2d', { alpha: true });
+        
+        let width, height;
+        let activeTrails = [];
+        let globalHue = 0;
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        let minNodeDistance = 15; 
+
+        // Current generative config
+        let config = {
+            sides: 6,
+            maxRadius: 60,
+            maxRotation: Math.PI * 2,
+            drawCircles: true,
+            maxAge: 100 
+        };
+
+        // --- AUDIO SETUP ---
+        let audioCtx;
+        let masterGain, delay, filter;
+        let audioEnabled = false;
+        let lastNoteTime = 0;
+
+        // C Major Pentatonic Scale for ethereal harmony (C3 to C6)
+        const scale = [130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+
+        function initAudio() {
+            if (audioCtx) return;
+            
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // Master Volume
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.25; 
+
+            // Lush Lowpass Filter (tames high harsh frequencies)
+            filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 2500;
+            filter.Q.value = 2;
+
+            // Ethereal Echo/Delay Network
+            delay = audioCtx.createDelay(2.0);
+            delay.delayTime.value = 0.5; // 500ms echo
+            
+            let delayFeedback = audioCtx.createGain();
+            delayFeedback.gain.value = 0.65; // High feedback for long trails
+
+            // Routing
+            delay.connect(delayFeedback);
+            delayFeedback.connect(delay);
+            delay.connect(filter);
+            
+            masterGain.connect(filter);
+            masterGain.connect(delay);
+            
+            filter.connect(audioCtx.destination);
+        }
+
+        function toggleAudio() {
+            const btn = document.getElementById('btnSound');
+            if (!audioEnabled) {
+                initAudio();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                audioEnabled = true;
+                btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> Sound: On`;
+                btn.classList.add('btn-active');
+            } else {
+                audioEnabled = false;
+                if(audioCtx) audioCtx.suspend();
+                btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg> Sound: Off`;
+                btn.classList.remove('btn-active');
+            }
+        }
+
+        function playSoundForNode(x, y, age) {
+            if (!audioEnabled || !audioCtx) return;
+
+            let now = audioCtx.currentTime;
+
+            // Pitch mapping: Higher Y -> Lower Pitch, Lower Y -> Higher Pitch
+            let normalizedY = 1 - (y / height);
+            let noteIndex = Math.floor(normalizedY * scale.length);
+            noteIndex = Math.max(0, Math.min(scale.length - 1, noteIndex));
+            let baseFreq = scale[noteIndex];
+
+            // Setup oscillators
+            let osc1 = audioCtx.createOscillator();
+            let osc2 = audioCtx.createOscillator();
+            let noteGain = audioCtx.createGain();
+            let panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+
+            // Panning: Left side of screen = left ear, right side = right ear
+            let panValue = (x / width) * 2 - 1;
+            if (panner.pan) {
+                panner.pan.value = panValue;
+            } else {
+                panner.setPosition(panValue, 0, 1 - Math.abs(panValue));
+            }
+
+            // Timbre based on visual shape (Circles = pure sine, Polygons = richer triangle/sine mix)
+            osc1.type = config.drawCircles ? 'sine' : 'triangle';
+            osc2.type = 'sine';
+
+            osc1.frequency.setValueAtTime(baseFreq, now);
+            // Osc 2 plays a perfect fifth above for extra etheral atmosphere
+            osc2.frequency.setValueAtTime(baseFreq * 1.5, now);
+
+            // Envelope (Slow attack, long fading tail)
+            let attack = 0.15;
+            let release = 2.5;
+
+            noteGain.gain.setValueAtTime(0, now);
+            noteGain.gain.linearRampToValueAtTime(0.2, now + attack);
+            noteGain.gain.exponentialRampToValueAtTime(0.001, now + attack + release);
+
+            // Connect
+            osc1.connect(noteGain);
+            osc2.connect(noteGain);
+            noteGain.connect(panner);
+            panner.connect(masterGain);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + attack + release);
+            osc2.stop(now + attack + release);
+
+            // Modulate the master filter dynamically based on color/hue to give motion to the sound
+            filter.frequency.setTargetAtTime(1500 + (globalHue % 360) * 4, now, 0.5);
+        }
+
+        // --- MAIN APP LOGIC ---
+
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            
+            // Mouse Events
+            fgCanvas.addEventListener('mousedown', startDraw);
+            window.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', endDraw);
+            
+            // Touch Events
+            fgCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startDraw(e.touches[0]);
+            }, { passive: false });
+            
+            window.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                moveDraw(e.touches[0]);
+            }, { passive: false });
+            
+            window.addEventListener('touchend', endDraw);
+            
+            // UI Buttons
+            document.getElementById('btnReset').addEventListener('click', resetCanvas);
+            document.getElementById('btnRandom').addEventListener('click', randomizeConfig);
+            document.getElementById('btnSound').addEventListener('click', toggleAudio);
+
+            requestAnimationFrame(animate);
+        }
+
+        function resize() {
+            let temp = document.createElement('canvas');
+            temp.width = bgCanvas.width || window.innerWidth;
+            temp.height = bgCanvas.height || window.innerHeight;
+            if(bgCanvas.width > 0) temp.getContext('2d').drawImage(bgCanvas, 0, 0);
+
+            width = window.innerWidth;
+            height = window.innerHeight;
+            
+            bgCanvas.width = width;
+            bgCanvas.height = height;
+            fgCanvas.width = width;
+            fgCanvas.height = height;
+
+            ctxBg.fillStyle = '#030305';
+            ctxBg.fillRect(0, 0, width, height);
+            ctxBg.drawImage(temp, 0, 0);
+
+            ctxFg.lineJoin = 'round';
+            ctxFg.lineCap = 'round';
+            ctxBg.lineJoin = 'round';
+            ctxBg.lineCap = 'round';
+        }
+
+        function randomizeConfig() {
+            config.sides = Math.floor(Math.random() * 8) + 3; // 3 to 10 sides
+            config.maxRadius = Math.random() * 70 + 40; 
+            config.maxRotation = (Math.random() * 3) * Math.PI; 
+            config.drawCircles = Math.random() > 0.4; 
+            config.maxAge = Math.floor(Math.random() * 80) + 60; 
+            globalHue = Math.random() * 360; 
+            
+            const btn = document.getElementById('btnRandom');
+            btn.style.background = 'rgba(255, 255, 255, 0.3)';
+            setTimeout(() => btn.style.background = '', 200);
+
+            // Add a subtle sound cue for morphing
+            if (audioEnabled) {
+                 filter.frequency.setTargetAtTime(4000, audioCtx.currentTime, 0.1);
+                 filter.frequency.setTargetAtTime(2000, audioCtx.currentTime + 0.2, 0.5);
+            }
+        }
+
+        function resetCanvas() {
+            ctxBg.fillStyle = '#030305';
+            ctxBg.fillRect(0, 0, width, height);
+            activeTrails = [];
+            ctxFg.clearRect(0, 0, width, height);
+            document.getElementById('instructions').classList.remove('hidden');
+        }
+
+        function startDraw(e) {
+            // Resume context if suspended (Browser autoplay policy)
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isDrawing = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            
+            activeTrails.push({
+                nodes: [],
+                drawnUpToIndex: -1,
+                isFinished: false
+            });
+            
+            addNode(lastX, lastY);
+            document.getElementById('instructions').classList.add('hidden');
+        }
+
+        function moveDraw(e) {
+            if (!isDrawing) return;
+            
+            let x = e.clientX;
+            let y = e.clientY;
+            
+            let dx = x - lastX;
+            let dy = y - lastY;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist >= minNodeDistance) {
+                let steps = Math.floor(dist / minNodeDistance);
+                for (let i = 1; i <= steps; i++) {
+                    let ix = lastX + (dx * i) / steps;
+                    let iy = lastY + (dy * i) / steps;
+                    addNode(ix, iy);
+                }
+                lastX = lastX + (dx * steps) / steps;
+                lastY = lastY + (dy * steps) / steps;
+            }
+        }
+
+        function endDraw() {
+            if (activeTrails.length > 0 && isDrawing) {
+                activeTrails[activeTrails.length - 1].isFinished = true;
+            }
+            isDrawing = false;
+        }
+
+        function addNode(x, y) {
+            let currentTrail = activeTrails[activeTrails.length - 1];
+            currentTrail.nodes.push({
+                x: x,
+                y: y,
+                age: 0,
+                maxAge: config.maxAge,
+                maxRadius: config.maxRadius,
+                maxRotation: config.maxRotation,
+                sides: config.sides,
+                drawCircles: config.drawCircles,
+                hue: globalHue
+            });
+            globalHue += 0.8; 
+
+            // Rate-limit audio triggering to prevent cacophony
+            let now = Date.now();
+            if (now - lastNoteTime > 120) { 
+                playSoundForNode(x, y, 0);
+                lastNoteTime = now;
+            }
+        }
+
+        function getVertices(node) {
+            let p = Math.min(node.age / node.maxAge, 1);
+            let easeP = 1 - Math.pow(1 - p, 3); 
+            
+            let radius = node.maxRadius * easeP;
+            let rotation = node.maxRotation * easeP;
+            let sides = node.sides;
+
+            let vertices = [];
+            for(let i=0; i<sides; i++) {
+                let a = rotation + i * (Math.PI * 2 / sides);
+                vertices.push({
+                    x: node.x + Math.cos(a) * radius,
+                    y: node.y + Math.sin(a) * radius
+                });
+            }
+            return { vertices, radius, p, easeP };
+        }
+
+        function drawTrailSegments(ctx, trail, startIdx, endIdx) {
+            if (startIdx >= trail.nodes.length) return;
+
+            for(let i = startIdx; i <= endIdx; i++) {
+                let node = trail.nodes[i];
+                let data = getVertices(node);
+                let v = data.vertices;
+                let alpha = 0.15; 
+
+                if (i > 0) {
+                    let prevNode = trail.nodes[i-1];
+                    let prevData = getVertices(prevNode);
+                    let pv = prevData.vertices;
+
+                    ctx.beginPath();
+                    for(let j=0; j<node.sides; j++) {
+                        ctx.moveTo(v[j].x, v[j].y);
+                        ctx.lineTo(pv[j].x, pv[j].y);
+                        
+                        let nextJ = (j+1) % node.sides;
+                        ctx.moveTo(v[j].x, v[j].y);
+                        ctx.lineTo(pv[nextJ].x, pv[nextJ].y);
+                    }
+                    ctx.strokeStyle = `hsla(${node.hue}, 80%, 65%, ${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(v[0].x, v[0].y);
+                for(let j=1; j<node.sides; j++) ctx.lineTo(v[j].x, v[j].y);
+                ctx.closePath();
+
+                for(let j=0; j<node.sides; j++) {
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(v[j].x, v[j].y);
+                }
+                ctx.strokeStyle = `hsla(${(node.hue + 20)%360}, 90%, 75%, ${alpha + 0.1})`;
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+
+                if (node.drawCircles && data.radius > 5) {
+                    ctx.beginPath();
+                    for(let j=0; j<node.sides; j++) {
+                        ctx.moveTo(v[j].x + data.radius/2, v[j].y);
+                        ctx.arc(v[j].x, v[j].y, data.radius/2, 0, Math.PI*2);
+                    }
+                    ctx.moveTo(node.x + data.radius, node.y);
+                    ctx.arc(node.x, node.y, data.radius, 0, Math.PI*2);
+                    ctx.strokeStyle = `hsla(${(node.hue + 40)%360}, 80%, 50%, ${alpha - 0.05})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function animate() {
+            ctxFg.clearRect(0, 0, width, height);
+
+            for (let t = activeTrails.length - 1; t >= 0; t--) {
+                let trail = activeTrails[t];
+                
+                for (let i = trail.drawnUpToIndex + 1; i < trail.nodes.length; i++) {
+                    if (trail.nodes[i].age < trail.nodes[i].maxAge) {
+                        trail.nodes[i].age += 1.2; // Slightly faster growth
+                    }
+                }
+
+                let startIndex = trail.drawnUpToIndex + 1;
+                let newDrawnIndex = trail.drawnUpToIndex;
+
+                for (let i = startIndex; i < trail.nodes.length; i++) {
+                    if (trail.nodes[i].age >= trail.nodes[i].maxAge) {
+                        newDrawnIndex = i;
+                    } else {
+                        break; 
+                    }
+                }
+
+                if (newDrawnIndex >= startIndex) {
+                    drawTrailSegments(ctxBg, trail, startIndex, newDrawnIndex);
+                    trail.drawnUpToIndex = newDrawnIndex;
+                }
+
+                if (trail.drawnUpToIndex < trail.nodes.length - 1) {
+                    let startFg = Math.max(0, trail.drawnUpToIndex);
+                    drawTrailSegments(ctxFg, trail, startFg, trail.nodes.length - 1);
+                }
+
+                if (trail.isFinished && trail.drawnUpToIndex === trail.nodes.length - 1) {
+                    activeTrails.splice(t, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
