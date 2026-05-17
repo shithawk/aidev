@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether: Sensory & Sonic Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful iconography -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Syne for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                            darkBg: '#0b0b14',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'blob': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.15)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #07070c;
+        }
+        .heading-font {
+            font-family: 'Syne', sans-serif;
+        }
+        /* Custom Glowing Card Styles */
+        .glass-card {
+            background: rgba(15, 15, 27, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.3);
+        }
+        .glass-card:active {
+            transform: translateY(-2px) scale(0.99);
+        }
+        /* Ambient Background Blobs */
+        .ambient-glow {
+            filter: blur(120px);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden relative">
+
+    <!-- Ambient Floating Orbs -->
+    <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-700 ambient-glow animate-blob"></div>
+    <div class="absolute bottom-[10%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-purple-700 ambient-glow animate-blob" style="animation-delay: 3s;"></div>
+    <div class="absolute top-[40%] left-[35%] w-[35vw] h-[35vw] rounded-full bg-brand-600 ambient-glow animate-blob" style="animation-delay: 6s;"></div>
+
+    <!-- Header/Navigation -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-10 relative">
+        <a href="#" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-brand-500 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:rotate-12 transition-transform duration-300">
+                <i class="fa-solid fa-compass-drafting text-white text-lg"></i>
+            </div>
+            <div>
+                <span class="heading-font text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-200 bg-clip-text text-transparent">AETHER</span>
+                <span class="block text-[10px] text-brand-200 uppercase tracking-widest font-semibold">Sensory Suite</span>
+            </div>
+        </a>
+        <div class="flex items-center gap-4">
+            <!-- Audio Toggle Indicator -->
+            <button id="synthToggleBtn" onclick="toggleAudio()" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:border-brand-500/30 transition-all text-xs font-medium text-slate-300">
+                <i id="audioIcon" class="fa-solid fa-volume-xmark text-brand-500"></i>
+                <span id="audioText">Sound FX Off</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero / Main Content -->
+    <main class="w-full max-w-7xl mx-auto px-6 py-12 flex-grow flex flex-col justify-center z-10 relative">
+        <div class="max-w-3xl mb-16">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-xs font-semibold mb-6">
+                <span class="flex h-2 w-2 rounded-full bg-brand-500 animate-pulse"></span>
+                Interactive Dashboard Available
+            </div>
+            <h1 class="heading-font text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+                Explore the <span class="bg-gradient-to-r from-brand-200 via-brand-500 to-purple-400 bg-clip-text text-transparent">Atmosphere</span>
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl leading-relaxed">
+                Connect and experience interactive sonic soundscapes, physical tactile modules, sacred geometry interfaces, and energetic rhythm controls. Click below to step into each dimension.
+            </p>
+        </div>
+
+        <!-- Link Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            
+            <!-- Card 1: DJ -->
+            <a href="dj.html" class="glass-card rounded-2xl overflow-hidden group flex flex-col justify-between h-96" onmouseenter="playSynth(0)" onclick="playSynth(0)">
+                <div class="relative h-48 w-full overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f1b] via-transparent to-transparent z-10"></div>
+                    <img 
+                        src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop" 
+                        alt="DJ Console" 
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/23233c/ffffff?text=DJ';"
+                    >
+                    <div class="absolute top-4 left-4 z-20 px-3 py-1 rounded-md bg-purple-500/80 backdrop-blur-sm text-xs font-semibold text-white">
+                        RHYTHM
+                    </div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h2 class="heading-font text-2xl font-bold text-white group-hover:text-brand-500 transition-colors duration-300">DJ</h2>
+                        <p class="text-sm text-slate-400 mt-2 line-clamp-3">
+                            Step behind the decks to orchestrate immersive tracks, blend pulses, and customize continuous spatial beats.
+                        </p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between text-xs font-semibold text-brand-500 uppercase tracking-widest">
+                        <span>Launch Stage</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 2: Sacred -->
+            <a href="sacred.html" class="glass-card rounded-2xl overflow-hidden group flex flex-col justify-between h-96" onmouseenter="playSynth(1)" onclick="playSynth(1)">
+                <div class="relative h-48 w-full overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f1b] via-transparent to-transparent z-10"></div>
+                    <img 
+                        src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop" 
+                        alt="Sacred Space" 
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/23233c/ffffff?text=Sacred';"
+                    >
+                    <div class="absolute top-4 left-4 z-20 px-3 py-1 rounded-md bg-emerald-500/80 backdrop-blur-sm text-xs font-semibold text-white">
+                        HARMONY
+                    </div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h2 class="heading-font text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors duration-300">Sacred</h2>
+                        <p class="text-sm text-slate-400 mt-2 line-clamp-3">
+                            Explore beautiful physical geometric portals, meditative drones, and harmonic alignments designed for resonance.
+                        </p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between text-xs font-semibold text-emerald-400 uppercase tracking-widest">
+                        <span>Enter Temple</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 3: Sounds -->
+            <a href="sounds.html" class="glass-card rounded-2xl overflow-hidden group flex flex-col justify-between h-96" onmouseenter="playSynth(2)" onclick="playSynth(2)">
+                <div class="relative h-48 w-full overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f1b] via-transparent to-transparent z-10"></div>
+                    <img 
+                        src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop" 
+                        alt="Sound Waves" 
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/23233c/ffffff?text=Sounds';"
+                    >
+                    <div class="absolute top-4 left-4 z-20 px-3 py-1 rounded-md bg-blue-500/80 backdrop-blur-sm text-xs font-semibold text-white">
+                        ACOUSTIC
+                    </div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h2 class="heading-font text-2xl font-bold text-white group-hover:text-blue-400 transition-colors duration-300">Sounds</h2>
+                        <p class="text-sm text-slate-400 mt-2 line-clamp-3">
+                            Interact with dynamic synthetically generated frequencies, soundwaves, and customized ambient modular oscillators.
+                        </p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between text-xs font-semibold text-blue-400 uppercase tracking-widest">
+                        <span>Listen Live</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 4: Touch -->
+            <a href="touch.html" class="glass-card rounded-2xl overflow-hidden group flex flex-col justify-between h-96" onmouseenter="playSynth(3)" onclick="playSynth(3)">
+                <div class="relative h-48 w-full overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f1b] via-transparent to-transparent z-10"></div>
+                    <img 
+                        src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop" 
+                        alt="Touch Interface" 
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/23233c/ffffff?text=Touch';"
+                    >
+                    <div class="absolute top-4 left-4 z-20 px-3 py-1 rounded-md bg-rose-500/80 backdrop-blur-sm text-xs font-semibold text-white">
+                        TACTILE
+                    </div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h2 class="heading-font text-2xl font-bold text-white group-hover:text-rose-400 transition-colors duration-300">Touch</h2>
+                        <p class="text-sm text-slate-400 mt-2 line-clamp-3">
+                            Connect with physical textures, custom tactile parameters, responsive gesture pads, and interactive friction physics.
+                        </p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between text-xs font-semibold text-rose-400 uppercase tracking-widest">
+                        <span>Feel Energy</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-7xl mx-auto px-6 py-10 z-10 relative border-t border-white/5 mt-12">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-slate-500 text-xs text-center md:text-left">
+                &copy; 2026 Aether Media Group. All portals fully responsive and sensory-enabled.
+            </div>
+            <div class="flex items-center gap-6 text-sm text-slate-400">
+                <a href="dj.html" class="hover:text-brand-500 transition-colors">DJ</a>
+                <a href="sacred.html" class="hover:text-emerald-400 transition-colors">Sacred</a>
+                <a href="sounds.html" class="hover:text-blue-400 transition-colors">Sounds</a>
+                <a href="touch.html" class="hover:text-rose-400 transition-colors">Touch</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Web Audio API Synthesizer setup for dynamic interaction
+        let audioCtx = null;
+        let isAudioEnabled = false;
+
+        // Custom chord tones for each card index
+        // [DJ, Sacred, Sounds, Touch]
+        const cardFrequencies = [220.00, 261.63, 329.63, 392.00]; // A3, C4, E4, G4
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleAudio() {
+            initAudio();
+            isAudioEnabled = !isAudioEnabled;
+            
+            const btn = document.getElementById('synthToggleBtn');
+            const icon = document.getElementById('audioIcon');
+            const txt = document.getElementById('audioText');
+
+            if (isAudioEnabled) {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                icon.className = "fa-solid fa-volume-high text-brand-500 animate-bounce";
+                txt.textContent = "Sound FX On";
+                btn.classList.add('border-brand-500');
+                
+                // Play simple welcome chime
+                playChime();
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-brand-500";
+                txt.textContent = "Sound FX Off";
+                btn.classList.remove('border-brand-500');
+            }
+        }
+
+        function playSynth(index) {
+            if (!isAudioEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') return;
+
+            const now = audioCtx.currentTime;
+            
+            // Oscillator 1 (Warm Triangle)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'triangle';
+            osc1.frequency.setValueAtTime(cardFrequencies[index], now);
+            
+            // Oscillator 2 (Ethereal Sine, octave higher)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(cardFrequencies[index] * 2, now);
+
+            // Audio routing with quick decay
+            gain1.gain.setValueAtTime(0.12, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            
+            gain2.gain.setValueAtTime(0.06, now);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+
+            // Connect routing nodes
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc1.stop(now + 1.3);
+
+            osc2.start(now);
+            osc2.stop(now + 1.7);
+        }
+
+        function playChime() {
+            const now = audioCtx.currentTime;
+            const chords = [261.63, 329.63, 392.00, 523.25]; // C major welcome
+            
+            chords.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + (idx * 0.08));
+                
+                gain.gain.setValueAtTime(0.05, now + (idx * 0.08));
+                gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.08) + 0.8);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + (idx * 0.08));
+                osc.stop(now + (idx * 0.08) + 0.9);
+            });
+        }
+    </script>
+</body>
+</html>
