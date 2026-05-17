@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Trance DJ Interface</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome for DJ Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js Audio Engine Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; /* Neutral deep dark Slate-950 */
+        }
+        .mono-font {
+            font-family: 'Share Tech Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+        /* Custom Glowing Classes */
+        .neon-glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+        }
+        .neon-glow-purple {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+        .neon-border-cyan {
+            border-color: rgba(6, 182, 212, 0.6);
+        }
+    </style>
+</head>
+<body class="text-slate-100 overflow-x-hidden min-h-screen flex flex-col select-none">
+
+    <!-- Top Global Header Bar -->
+    <header class="border-b border-slate-800 bg-slate-950 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center animate-pulse">
+                <i class="fa-solid fa-compact-disc text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">NEO-TRANCE</h1>
+                <p class="text-[10px] text-cyan-400 font-medium tracking-widest uppercase">Live Performance Deck</p>
+            </div>
+        </div>
+
+        <!-- Master Status display -->
+        <div class="flex items-center gap-6">
+            <div class="hidden sm:flex items-center gap-4 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-mono">
+                <span class="text-slate-500">ENGINE:</span>
+                <span id="audio-engine-status" class="text-rose-500 flex items-center gap-1.5 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 inline-block animate-ping"></span> OFFLINE
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="power-btn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 flex items-center gap-2 transition duration-300 transform active:scale-95 shadow-lg shadow-emerald-950/40">
+                    <i class="fa-solid fa-power-off"></i> INITIALIZE DECK
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Space -->
+    <main class="flex-1 p-3 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+
+        <!-- Column 1: Core Controls & Visualizer (Left side) -->
+        <section class="xl:col-span-4 flex flex-col gap-6">
+            
+            <!-- Global Deck Control Module -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-cyan-400"></i> Deck Config
+                    </h3>
+                    <span class="text-[10px] px-2 py-0.5 bg-slate-800 rounded-full border border-slate-700 text-slate-400 font-mono">STABLE LOOP</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- BPM Controller -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-center relative group">
+                        <span class="text-[10px] text-slate-500 font-bold tracking-wider uppercase mb-1">TEMPO (BPM)</span>
+                        <div class="flex items-baseline gap-1 select-none">
+                            <span id="bpm-display" class="text-3xl font-bold tracking-tight text-cyan-400 mono-font">135</span>
+                            <span class="text-xs text-slate-500">BPM</span>
+                        </div>
+                        <input type="range" id="bpm-slider" min="110" max="155" value="135" class="w-full mt-2 accent-cyan-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Volume Controller -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-center relative">
+                        <span class="text-[10px] text-slate-500 font-bold tracking-wider uppercase mb-1">MASTER GAIN</span>
+                        <div class="flex items-baseline gap-1 select-none">
+                            <span id="vol-display" class="text-3xl font-bold tracking-tight text-purple-400 mono-font">80</span>
+                            <span class="text-xs text-slate-500">%</span>
+                        </div>
+                        <input type="range" id="vol-slider" min="0" max="100" value="80" class="w-full mt-2 accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Transport Actions -->
+                <div class="flex gap-2">
+                    <button id="play-btn" disabled class="flex-1 py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-cyan-500 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 flex items-center justify-center gap-2 font-bold text-sm tracking-wider uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-play"></i> Start Sequence
+                    </button>
+                    <button id="stop-btn" disabled class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-rose-500 hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-square"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-time Canvas Visualizer Module -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-wave-square text-cyan-400"></i> Signal Waveform
+                    </h3>
+                    <div class="flex gap-2 text-[10px]">
+                        <button id="viz-type-wave" class="px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded font-bold uppercase transition">Wave</button>
+                        <button id="viz-type-freq" class="px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200 rounded font-bold uppercase transition">Freq</button>
+                    </div>
+                </div>
+                <!-- Interactive Canvas Container -->
+                <div class="relative w-full h-36 bg-slate-950 border border-slate-800/80 rounded-xl overflow-hidden flex items-center justify-center">
+                    <canvas id="visualizer-canvas" class="w-full h-full absolute inset-0"></canvas>
+                    <div id="visualizer-placeholder" class="text-slate-600 text-[10px] tracking-widest uppercase font-mono z-10 pointer-events-none">Signal Stream Offline</div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                    <span>20 Hz</span>
+                    <span>12.5 kHz</span>
+                    <span>22 kHz</span>
+                </div>
+            </div>
+
+            <!-- DJ Filters & Global Effects Sweep -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Master FX Rack
+                    </h3>
+                    <span class="text-[10px] text-purple-400 font-semibold tracking-wider">ROUTED STEREO</span>
+                </div>
+
+                <!-- Sweep Filter Slider -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-400 font-bold tracking-wider">DJ FILTER SWEEP</span>
+                        <span id="filter-label" class="text-cyan-400 font-mono text-[10px]">BYPASS</span>
+                    </div>
+                    <input type="range" id="filter-slider" min="0" max="100" value="50" class="w-full accent-cyan-500 h-2 bg-slate-800 rounded-lg cursor-pointer mt-1">
+                    <div class="flex justify-between text-[9px] text-slate-500 uppercase font-mono mt-2">
+                        <span>Low-Pass Filter</span>
+                        <span>Bypass Filter</span>
+                        <span>High-Pass Filter</span>
+                    </div>
+                </div>
+
+                <!-- Delay & Reverb Dual Knobs -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex flex-col">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-2">
+                            <span>SPACE ECHO</span>
+                            <span id="delay-val" class="text-purple-400">0%</span>
+                        </div>
+                        <input type="range" id="delay-slider" min="0" max="100" value="15" class="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex flex-col">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-2">
+                            <span>REVERB DAMP</span>
+                            <span id="reverb-val" class="text-purple-400">20%</span>
+                        </div>
+                        <input type="range" id="reverb-slider" min="0" max="100" value="20" class="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Column 2: 16-Step Loop Sequencer Grid (Center Area) -->
+        <section class="xl:col-span-8 flex flex-col gap-6">
+            
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-5 shadow-xl backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-purple-600"></div>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-100 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-cyan-400"></i> Step Loop Sequencer
+                        </h3>
+                        <p class="text-[10px] text-slate-500 mt-1">16-Step Trance Loop Grid. Click steps to enable/disable triggers.</p>
+                    </div>
+
+                    <!-- Presets Menu & Clear Button -->
+                    <div class="flex gap-2 text-xs">
+                        <button id="preset-minimal" class="px-3 py-1 bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-semibold rounded-lg transition hover:bg-cyan-900">Minimal</button>
+                        <button id="preset-psy" class="px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-lg transition hover:bg-slate-700">Harder</button>
+                        <button id="clear-seq-btn" class="px-3 py-1 bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-900 text-slate-400 hover:text-rose-400 font-semibold rounded-lg transition">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Sequencer Grid Container -->
+                <div class="flex flex-col gap-4 overflow-x-auto pb-2">
+                    
+                    <!-- Time Bar indicator / Beats Tracker -->
+                    <div class="flex items-center min-w-[620px]">
+                        <!-- Track header block spacer -->
+                        <div class="w-24 shrink-0 flex items-center pr-3">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">BEAT/STEP</span>
+                        </div>
+                        <!-- Step columns -->
+                        <div class="flex-1 grid grid-cols-16 gap-1 sm:gap-1.5" id="beat-indicators">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Channel Rows -->
+                    <div id="sequencer-rows-container" class="flex flex-col gap-3 min-w-[620px]">
+                        <!-- Track rows will be injected by JavaScript programmatically -->
+                    </div>
+
+                </div>
+
+                <!-- Custom Step Sequence Info Box -->
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs text-slate-400">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-circle-info text-cyan-400"></i> Press Spacebar to play/pause loop anytime.</span>
+                    <span class="text-[10px] uppercase font-mono text-slate-500">Auto-saves local pattern</span>
+                </div>
+            </div>
+
+            <!-- Synth Lead & SFX Launchpad Container (Bottom Grid) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Hypnotic Arp Lead Controller -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl backdrop-blur-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-keyboard text-cyan-400"></i> Arpeggiator Lead Synth
+                        </h3>
+                        <span id="synth-state-label" class="text-[10px] font-mono px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-md text-emerald-400">ACTIVE ARP</span>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500">Hold notes or change keyboard octaves to feed the arpeggio stream dynamically. Fits trance scale.</p>
+
+                    <!-- Key Scales Block Matrix -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col gap-4">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-400 font-bold">ARP PATTERN</span>
+                            <div class="flex gap-1">
+                                <button id="arp-up" class="px-2 py-0.5 bg-cyan-950 border border-cyan-800 text-cyan-400 text-[10px] font-bold rounded">UP</button>
+                                <button id="arp-down" class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded">DOWN</button>
+                                <button id="arp-rand" class="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded">RAND</button>
+                            </div>
+                        </div>
+
+                        <!-- Mini Custom Key Pad -->
+                        <div class="grid grid-cols-7 gap-1.5" id="keyboard-notes">
+                            <!-- Populated with beautiful minimal style keys -->
+                        </div>
+
+                        <!-- Resonance & Pitch Mod controls -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Lead Glide</span>
+                                <input type="range" id="synth-glide" min="0" max="100" value="25" class="w-full accent-cyan-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Cutoff Resonance</span>
+                                <input type="range" id="synth-resonance" min="0" max="100" value="45" class="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SFX Launchpad Section (Procedural Trance FX Triggers) -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl backdrop-blur-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-gamepad text-purple-400"></i> SFX Samples Trigger
+                        </h3>
+                        <span class="text-[10px] font-mono text-purple-400">PROCEDURAL RENDER</span>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500">Launch one-shot atmospheric sweeps, sub drops, lasers, and chord structures synthesized live by Tone.js.</p>
+
+                    <!-- Pad Grid -->
+                    <div class="grid grid-cols-4 gap-2 flex-1 min-h-[140px]">
+                        <!-- Launchpad Button 1 -->
+                        <button id="pad-sweep" class="launch-pad bg-slate-950 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-wind text-cyan-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">HP Sweep</span>
+                        </button>
+                        <!-- Launchpad Button 2 -->
+                        <button id="pad-drop" class="launch-pad bg-slate-950 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-arrow-down-long text-cyan-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Sub Drop</span>
+                        </button>
+                        <!-- Launchpad Button 3 -->
+                        <button id="pad-zap" class="launch-pad bg-slate-950 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-bolt text-cyan-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Psy Zap</span>
+                        </button>
+                        <!-- Launchpad Button 4 -->
+                        <button id="pad-space" class="launch-pad bg-slate-950 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-satellite text-cyan-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Deep Space</span>
+                        </button>
+                        <!-- Launchpad Button 5 -->
+                        <button id="pad-chord1" class="launch-pad bg-slate-950 hover:bg-purple-950/20 border border-slate-800 hover:border-purple-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-music text-purple-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Min Chord</span>
+                        </button>
+                        <!-- Launchpad Button 6 -->
+                        <button id="pad-chord2" class="launch-pad bg-slate-950 hover:bg-purple-950/20 border border-slate-800 hover:border-purple-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-clover text-purple-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Maj Chord</span>
+                        </button>
+                        <!-- Launchpad Button 7 -->
+                        <button id="pad-noise" class="launch-pad bg-slate-950 hover:bg-purple-950/20 border border-slate-800 hover:border-purple-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-radio text-purple-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Vinyl Rise</span>
+                        </button>
+                        <!-- Launchpad Button 8 -->
+                        <button id="pad-laser" class="launch-pad bg-slate-950 hover:bg-purple-950/20 border border-slate-800 hover:border-purple-500 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 transition duration-200 cursor-pointer active:scale-95 group">
+                            <i class="fa-solid fa-raygun fa-gun text-purple-400 group-hover:scale-110 transition"></i>
+                            <span class="text-[9px] font-bold tracking-tight text-slate-300">Arp Ping</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer Section with Info -->
+    <footer class="border-t border-slate-900 bg-slate-950 px-6 py-4 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div class="flex items-center gap-2">
+            <span>Powered by</span>
+            <span class="font-bold text-slate-400">Tone.js</span>
+            <span>&amp; HTML5 Web Audio Technology</span>
+        </div>
+        <div class="flex gap-6">
+            <span class="flex items-center gap-1.5 text-cyan-500 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-cyan-500 inline-block animate-ping"></span> 100% Procedural Synthesis</span>
+            <span>No external files or loading latency</span>
+        </div>
+    </footer>
+
+    <!-- Sound Logic Engine Implementation -->
+    <script>
+        // --- TRACK PATTERNS CONFIGURATION ---
+        const TRACKS = [
+            { id: 'kick', name: 'Kick Drum', icon: 'fa-drum', color: 'cyan', defaultPattern: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] },
+            { id: 'hat', name: 'Off Hi-Hat', icon: 'fa-regular fa-star', color: 'cyan', defaultPattern: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0] },
+            { id: 'clap', name: 'Snare/Clap', icon: 'fa-hands-clapping', color: 'cyan', defaultPattern: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] },
+            { id: 'bass', name: 'Rolling Bass', icon: 'fa-wave-square', color: 'purple', defaultPattern: [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0] }
+        ];
+
+        // Custom alternative pattern definitions (Preset Harder)
+        const ALT_PATTERNS = {
+            kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
+            hat: [0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+            clap: [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1],
+            bass: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        };
+
+        const KEYBOARD_NOTES = [
+            { label: 'E3', note: 'E3' },
+            { label: 'G3', note: 'G3' },
+            { label: 'A3', note: 'A3' },
+            { label: 'B3', note: 'B3' },
+            { label: 'D4', note: 'D4' },
+            { label: 'E4', note: 'E4' },
+            { label: 'G4', note: 'G4' }
+        ];
+
+        // Application Global States
+        let isPowerOn = false;
+        let isPlaying = false;
+        let activeBpm = 135;
+        let activeVolume = 80; // Scale 0-100
+        let visualizerMode = 'wave'; // 'wave' or 'freq'
+        let currentStep = 0;
+        let arpPattern = 'UP'; // UP, DOWN, RAND
+        let activeKeys = new Set(['E3', 'B3']); // Default active keys feed the arpeggiator
+
+        // Current sequencer state
+        let currentPattern = {};
+        TRACKS.forEach(t => {
+            currentPattern[t.id] = [...t.defaultPattern];
+        });
+
+        // --- TONE.JS SYNTHESIS ROUTING RACK ---
+        // Global FX Nodes
+        let masterGainNode;
+        let masterFilterNode;
+        let masterDelayNode;
+        let masterReverbNode;
+        let masterAnalyserNode;
+
+        // Instruments
+        let kickSynth;
+        let hatSynth;
+        let hatFilter;
+        let clapSynth;
+        let clapFilter;
+        let bassSynth;
+        let leadSynth;
+        let polyPadSynth; // For chord triggers
+        
+        // Loop Scheduling Variable
+        let transportLoopId = null;
+
+        // --- INTERACTIVE UI SELECTORS ---
+        const powerBtn = document.getElementById('power-btn');
+        const playBtn = document.getElementById('play-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const bpmSlider = document.getElementById('bpm-slider');
+        const bpmDisplay = document.getElementById('bpm-display');
+        const volSlider = document.getElementById('vol-slider');
+        const volDisplay = document.getElementById('vol-display');
+        const filterSlider = document.getElementById('filter-slider');
+        const filterLabel = document.getElementById('filter-label');
+        const delaySlider = document.getElementById('delay-slider');
+        const reverbSlider = document.getElementById('reverb-slider');
+        const delayVal = document.getElementById('delay-val');
+        const reverbVal = document.getElementById('reverb-val');
+        const vizTypeWave = document.getElementById('viz-type-wave');
+        const vizTypeFreq = document.getElementById('viz-type-freq');
+        const canvas = document.getElementById('visualizer-canvas');
+        const canvasCtx = canvas.getContext('2d');
+        const visualizerPlaceholder = document.getElementById('visualizer-placeholder');
+        const clearSeqBtn = document.getElementById('clear-seq-btn');
+        const presetMinimalBtn = document.getElementById('preset-minimal');
+        const presetPsyBtn = document.getElementById('preset-psy');
+        const keyboardContainer = document.getElementById('keyboard-notes');
+        const synthResSlider = document.getElementById('synth-resonance');
+        const synthGlideSlider = document.getElementById('synth-glide');
+        const arpUpBtn = document.getElementById('arp-up');
+        const arpDownBtn = document.getElementById('arp-down');
+        const arpRandBtn = document.getElementById('arp-rand');
+        const audioEngineStatus = document.getElementById('audio-engine-status');
+
+        // --- SOUND ARCHITECT SYSTEM SETUP ---
+        async function initializeAudio() {
+            if (isPowerOn) return;
+
+            // Start Audio Context explicitly
+            await Tone.start();
+            
+            // Build visual analyser
+            masterAnalyserNode = new Tone.Analyser("waveform", 256);
+
+            // Master volume gain control
+            masterGainNode = new Tone.Gain(Tone.dbToGain(-5)).toDestination();
+
+            // Dual Sweeping DJ Filter (Lowpass / Highpass combined via resonance dynamics)
+            masterFilterNode = new Tone.Filter({
+                type: "lowpass",
+                frequency: 20000,
+                Q: 1
+            });
+
+            // Space feedback delay engine
+            masterDelayNode = new Tone.FeedbackDelay({
+                delayTime: "8n.",
+                feedback: 0.15,
+                wet: 0.15
+            });
+
+            // Dense space reverb
+            masterReverbNode = new Tone.Reverb({
+                roomSize: 0.7,
+                wet: 0.2
+            });
+
+            // CONNECT FX STREAM: Synthesizers -> Filter -> Delay -> Reverb -> Analyser -> Output
+            masterFilterNode.connect(masterDelayNode);
+            masterDelayNode.connect(masterReverbNode);
+            masterReverbNode.connect(masterAnalyserNode);
+            masterAnalyserNode.connect(masterGainNode);
+
+            // -- SYNTHESIZE INSTRUMENT SOUNDS PROCEDURALLY --
+            
+            // Kick Synth (Sine frequency mod envelope sweep)
+            kickSynth = new Tone.MembraneSynth({
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.22,
+                    sustain: 0,
+                    release: 0.08
+                },
+                oscillator: { type: "sine" }
+            }).connect(masterFilterNode);
+
+            // Hi-hat Synthesizer (Metallic noise filtered highpass)
+            hatFilter = new Tone.Filter(7500, "highpass").connect(masterFilterNode);
+            hatSynth = new Tone.NoiseSynth({
+                noise: { type: "white" },
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.06,
+                    sustain: 0
+                }
+            }).connect(hatFilter);
+
+            // Trance Clap Synth (Bandpassed colored pink noise block)
+            clapFilter = new Tone.Filter(1400, "bandpass").connect(masterFilterNode);
+            clapSynth = new Tone.NoiseSynth({
+                noise: { type: "pink" },
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.14,
+                    sustain: 0
+                }
+            }).connect(clapFilter);
+
+            // Rolling Mono Bass Synth (Classic square wave oscillator with filter sweep envelope)
+            bassSynth = new Tone.MonoSynth({
+                oscillator: { type: "sawtooth" },
+                filter: { Q: 0.8, type: "lowpass", frequency: 450 },
+                envelope: {
+                    attack: 0.005,
+                    decay: 0.08,
+                    sustain: 0.2,
+                    release: 0.08
+                },
+                filterEnvelope: {
+                    attack: 0.002,
+                    decay: 0.1,
+                    sustain: 0.1,
+                    baseFrequency: 180,
+                    octaves: 2.2
+                }
+            }).connect(masterFilterNode);
+
+            // Lead Synth (Interactive arpeggio player - square wave with short delay)
+            leadSynth = new Tone.Synth({
+                oscillator: { type: "square" },
+                envelope: {
+                    attack: 0.01,
+                    decay: 0.12,
+                    sustain: 0.3,
+                    release: 0.15
+                }
+            }).connect(masterFilterNode);
+
+            // Poly Synth for ambient Trance Chords trigger
+            polyPadSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: {
+                    attack: 0.25,
+                    decay: 0.5,
+                    sustain: 0.8,
+                    release: 0.8
+                }
+            }).connect(masterFilterNode);
+
+            // Sync global tempo to Transport
+            Tone.Transport.bpm.value = activeBpm;
+
+            // Mark engine as running
+            isPowerOn = true;
+            audioEngineStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> OPERATIONAL';
+            audioEngineStatus.className = "text-emerald-500 flex items-center gap-1.5 font-semibold";
+            powerBtn.classList.remove('from-emerald-500', 'to-teal-600');
+            powerBtn.classList.add('from-rose-500', 'to-rose-600');
+            powerBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> SUSPEND DECK';
+
+            // Unlock and active buttons
+            playBtn.removeAttribute('disabled');
+            stopBtn.removeAttribute('disabled');
+            playBtn.classList.remove('text-slate-400', 'border-slate-700');
+            playBtn.classList.add('text-cyan-400', 'border-cyan-800');
+
+            visualizerPlaceholder.classList.add('hidden');
+
+            // Begin visualizer frame loop rendering
+            renderVisualizer();
+
+            // Initialize scheduling pattern sequence
+            scheduleSequencer();
+        }
+
+        // Suspend/Power Off sound engine
+        function suspendAudio() {
+            if (!isPowerOn) return;
+            
+            stopSequence();
+            isPowerOn = false;
+
+            audioEngineStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block animate-ping"></span> OFFLINE';
+            audioEngineStatus.className = "text-rose-500 flex items-center gap-1.5 font-semibold";
+            
+            powerBtn.classList.remove('from-rose-500', 'to-rose-600');
+            powerBtn.classList.add('from-emerald-500', 'to-teal-600');
+            powerBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> INITIALIZE DECK';
+
+            playBtn.setAttribute('disabled', 'true');
+            stopBtn.setAttribute('disabled', 'true');
+            playBtn.classList.add('text-slate-400', 'border-slate-700');
+            playBtn.classList.remove('text-cyan-400', 'border-cyan-800');
+            
+            visualizerPlaceholder.classList.remove('hidden');
+
+            // Clean synthesis instances
+            if (transportLoopId) {
+                Tone.Transport.clear(transportLoopId);
+                transportLoopId = null;
+            }
+        }
+
+        // --- LOOP SEQUENCER SCHEDULER ENGINE ---
+        function scheduleSequencer() {
+            // Schedule every 16th note inside the transport timeline loop
+            transportLoopId = Tone.Transport.scheduleRepeat((time) => {
+                
+                // 1. Kick Trigger
+                if (currentPattern.kick[currentStep] === 1) {
+                    kickSynth.triggerAttackRelease("C1", "8n", time);
+                }
+
+                // 2. Off Hihat Trigger (Using triggerAttackRelease to prevent scheduling overlaps)
+                if (currentPattern.hat[currentStep] === 1) {
+                    hatSynth.triggerAttackRelease("16n", time);
+                }
+
+                // 3. Clap Sound Trigger (Using triggerAttackRelease to prevent scheduling overlaps)
+                if (currentPattern.clap[currentStep] === 1) {
+                    clapSynth.triggerAttackRelease("8n", time);
+                }
+
+                // 4. Rolling Trance Off-beat Bassline Trigger (E1 / E2 notes)
+                if (currentPattern.bass[currentStep] === 1) {
+                    // Alternate octave hits for standard hypnotic minimal rolling trance bassline
+                    const bassNote = currentStep % 4 === 1 || currentStep % 4 === 3 ? "E2" : "E1";
+                    bassSynth.triggerAttackRelease(bassNote, "16n", time);
+                }
+
+                // 5. Dynamic Arp Sync Step Playback
+                triggerArpeggiatorStep(time);
+
+                // Highlight and progress visual UI step position
+                Tone.Draw.schedule(() => {
+                    updateVisualStep(currentStep);
+                }, time);
+
+                // Cycle steps 0 -> 15 loop
+                currentStep = (currentStep + 1) % 16;
+
+            }, "16n");
+        }
+
+        // Arp step trigger logic
+        function triggerArpeggiatorStep(time) {
+            if (activeKeys.size === 0) return;
+
+            // Convert to array
+            const notesArr = Array.from(activeKeys);
+            let selectedNote;
+
+            if (arpPattern === 'UP') {
+                selectedNote = notesArr[currentStep % notesArr.length];
+            } else if (arpPattern === 'DOWN') {
+                selectedNote = notesArr[(notesArr.length - 1 - currentStep) % notesArr.length];
+            } else {
+                // Random choice
+                selectedNote = notesArr[Math.floor(Math.random() * notesArr.length)];
+            }
+
+            // Every 16th or 8th note arpeggio play (minimal trance arpeggiate syncopated accent beats)
+            if (currentStep % 2 === 0 || Math.random() > 0.4) {
+                leadSynth.triggerAttackRelease(selectedNote, "16n", time);
+            }
+        }
+
+        // --- TRANSPORT PLAY / PAUSE LOGIC ---
+        function startSequence() {
+            if (!isPowerOn) return;
+            Tone.Transport.start();
+            isPlaying = true;
+            playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause Loop';
+            playBtn.classList.remove('hover:border-cyan-500', 'hover:text-cyan-400');
+            playBtn.classList.add('border-emerald-500', 'text-emerald-400', 'neon-glow-cyan');
+        }
+
+        function stopSequence() {
+            Tone.Transport.stop();
+            isPlaying = false;
+            currentStep = 0;
+            updateVisualStep(15); // Reset styling indicators
+            playBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start Sequence';
+            playBtn.classList.remove('border-emerald-500', 'text-emerald-400', 'neon-glow-cyan');
+            playBtn.classList.add('hover:border-cyan-500', 'hover:text-cyan-400');
+        }
+
+        // --- RENDER DYNAMIC GUI GRID & STEP BINDINGS ---
+        function renderSequencerUI() {
+            // 1. Render Beat header indices (1-16)
+            const indicatorsContainer = document.getElementById('beat-indicators');
+            indicatorsContainer.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = `h-5 flex items-center justify-center text-[10px] font-bold font-mono rounded bg-slate-950 border border-slate-900 transition-colors duration-200`;
+                indicator.id = `beat-led-${i}`;
+                // Highlight quarter note downbeats
+                if (i % 4 === 0) {
+                    indicator.classList.add('text-cyan-400', 'border-slate-800');
+                    indicator.innerText = `${(i / 4) + 1}`;
+                } else {
+                    indicator.classList.add('text-slate-600');
+                    indicator.innerText = `.${i % 4 + 1}`;
+                }
+                indicatorsContainer.appendChild(indicator);
+            }
+
+            // 2. Render Channel Instrument Rows
+            const rowsContainer = document.getElementById('sequencer-rows-container');
+            rowsContainer.innerHTML = '';
+
+            TRACKS.forEach(track => {
+                const rowElement = document.createElement('div');
+                rowElement.className = "flex items-center gap-1 w-full";
+
+                // Channel Label Info
+                const labelDiv = document.createElement('div');
+                labelDiv.className = "w-24 shrink-0 flex items-center gap-2 pr-3";
+                labelDiv.innerHTML = `
+                    <i class="fa-solid ${track.icon} text-xs ${track.color === 'cyan' ? 'text-cyan-400' : 'text-purple-400'} w-4"></i>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-300 tracking-tight leading-none">${track.name}</span>
+                        <span class="text-[8px] text-slate-500 mt-0.5 uppercase tracking-widest">${track.id}</span>
+                    </div>
+                `;
+
+                // Channel Grid of Buttons
+                const gridDiv = document.createElement('div');
+                gridDiv.className = "flex-1 grid grid-cols-16 gap-1 sm:gap-1.5";
+
+                for (let stepIdx = 0; stepIdx < 16; stepIdx++) {
+                    const stepBtn = document.createElement('button');
+                    const isActive = currentPattern[track.id][stepIdx] === 1;
+
+                    // Compute dynamic stylings based on pattern states & beat dividers
+                    let extraStyles = "border border-slate-800 bg-slate-950/60";
+                    if (stepIdx % 4 === 0) {
+                        extraStyles = "border border-slate-700/60 bg-slate-950";
+                    }
+
+                    stepBtn.className = `h-10 sm:h-11 rounded-lg transition-all duration-150 transform hover:scale-105 active:scale-95 focus:outline-none ${extraStyles} flex items-center justify-center relative cursor-pointer`;
+                    stepBtn.id = `btn-${track.id}-${stepIdx}`;
+
+                    // Nested state indicators inside buttons
+                    const stateDot = document.createElement('div');
+                    
+                    if (track.color === 'cyan') {
+                        stateDot.className = `w-4 h-4 rounded-full transition-all duration-200 ${isActive ? 'bg-cyan-500 shadow-md shadow-cyan-500/50' : 'bg-slate-800/80 scale-75'}`;
+                    } else {
+                        stateDot.className = `w-4 h-4 rounded-md transition-all duration-200 ${isActive ? 'bg-purple-500 shadow-md shadow-purple-500/50' : 'bg-slate-800/80 scale-75'}`;
+                    }
+
+                    stepBtn.appendChild(stateDot);
+
+                    // Attach click handler triggers
+                    stepBtn.addEventListener('click', () => {
+                        toggleSequencerStep(track.id, stepIdx, stateDot);
+                    });
+
+                    gridDiv.appendChild(stepBtn);
+                }
+
+                rowElement.appendChild(labelDiv);
+                rowElement.appendChild(gridDiv);
+                rowsContainer.appendChild(rowElement);
+            });
+        }
+
+        // Toggle sequencer note step inside global object and UI
+        function toggleSequencerStep(trackId, stepIdx, stateDot) {
+            const currentVal = currentPattern[trackId][stepIdx];
+            const newVal = currentVal === 1 ? 0 : 1;
+            currentPattern[trackId][stepIdx] = newVal;
+
+            // Trigger simple click sound to test step directly if loop is offline
+            if (!isPlaying && isPowerOn && newVal === 1) {
+                previewInstrumentTap(trackId);
+            }
+
+            // Visual Toggle
+            const isCyan = TRACKS.find(t => t.id === trackId).color === 'cyan';
+            if (newVal === 1) {
+                stateDot.className = `w-4 h-4 rounded-full transition-all duration-200 ${isCyan ? 'bg-cyan-500 shadow-md shadow-cyan-500/50 scale-100' : 'bg-purple-500 shadow-md shadow-purple-500/50 scale-100'}`;
+            } else {
+                stateDot.className = "w-4 h-4 rounded-full transition-all duration-200 bg-slate-800/80 scale-75";
+            }
+        }
+
+        // Interactive Instrument Preview taps
+        function previewInstrumentTap(trackId) {
+            if (trackId === 'kick') kickSynth.triggerAttackRelease("C1", "8n");
+            else if (trackId === 'hat') hatSynth.triggerAttackRelease("16n");
+            else if (trackId === 'clap') clapSynth.triggerAttackRelease("8n");
+            else if (trackId === 'bass') bassSynth.triggerAttackRelease("E1", "16n");
+        }
+
+        // Highlight Active Playhead Beat LEDs
+        function updateVisualStep(activeIdx) {
+            for (let i = 0; i < 16; i++) {
+                const led = document.getElementById(`beat-led-${i}`);
+                if (!led) continue;
+
+                if (i === activeIdx) {
+                    led.classList.remove('bg-slate-950', 'border-slate-900', 'text-slate-600', 'text-cyan-400');
+                    led.classList.add('bg-cyan-500/20', 'border-cyan-400', 'text-cyan-200');
+                } else {
+                    led.classList.remove('bg-cyan-500/20', 'border-cyan-400', 'text-cyan-200');
+                    if (i % 4 === 0) {
+                        led.classList.add('bg-slate-950', 'text-cyan-400');
+                    } else {
+                        led.classList.add('bg-slate-950', 'text-slate-600');
+                    }
+                }
+            }
+        }
+
+        // --- CUSTOM SCALE SYNTH KEYBOARD MATRICES ---
+        function renderKeyboard() {
+            keyboardContainer.innerHTML = '';
+            KEYBOARD_NOTES.forEach(kn => {
+                const isSelected = activeKeys.has(kn.note);
+                const keyBtn = document.createElement('button');
+                
+                // Trance neon glow outline styles
+                keyBtn.className = `py-2 rounded-xl border text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer ${
+                    isSelected 
+                    ? 'bg-cyan-950/80 border-cyan-500 text-cyan-300 neon-glow-cyan' 
+                    : 'bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700'
+                }`;
+                keyBtn.innerText = kn.label;
+
+                keyBtn.addEventListener('click', () => {
+                    if (activeKeys.has(kn.note)) {
+                        activeKeys.delete(kn.note);
+                        keyBtn.className = 'py-2 rounded-xl border text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700';
+                    } else {
+                        activeKeys.add(kn.note);
+                        keyBtn.className = 'py-2 rounded-xl border text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer bg-cyan-950/80 border-cyan-500 text-cyan-300 neon-glow-cyan';
+                        
+                        // Fire a synth trigger test pitch directly on click
+                        if (isPowerOn) {
+                            leadSynth.triggerAttackRelease(kn.note, "8n");
+                        }
+                    }
+                });
+
+                keyboardContainer.appendChild(keyBtn);
+            });
+        }
+
+        // --- PROCEDURAL SPECIAL EFFECTS SAMPLING SYSTEMS ---
+        function registerFXPadTriggers() {
+            const launchPads = document.querySelectorAll('.launch-pad');
+            launchPads.forEach(pad => {
+                pad.addEventListener('click', () => {
+                    if (!isPowerOn) {
+                        initializeAudio();
+                        return;
+                    }
+                    
+                    // Fire beautiful temporary glow and trigger sound sweep
+                    pad.classList.add('neon-glow-purple', 'neon-border-cyan');
+                    setTimeout(() => {
+                        pad.classList.remove('neon-glow-purple', 'neon-border-cyan');
+                    }, 400);
+
+                    const padId = pad.id;
+                    triggerProceduralFX(padId);
+                });
+            });
+        }
+
+        function triggerProceduralFX(id) {
+            const now = Tone.now();
+            
+            if (id === 'pad-sweep') {
+                // HP Noise Sweep (Atmosphere wind filter rise)
+                const noise = new Tone.Noise({ type: "white" }).start();
+                const filter = new Tone.Filter({ type: "highpass", frequency: 100 }).connect(masterFilterNode);
+                noise.connect(filter);
+
+                // Sweeping automation up
+                filter.frequency.exponentialRampToValueAtTime(14000, now + 2);
+                noise.volume.setValueAtTime(-10, now);
+                noise.volume.exponentialRampToValueAtTime(-40, now + 2);
+                
+                setTimeout(() => {
+                    noise.stop();
+                    noise.dispose();
+                    filter.dispose();
+                }, 2100);
+
+            } else if (id === 'pad-drop') {
+                // Heavy Sub Drop sweep
+                const subOsc = new Tone.Oscillator({ type: "sine" }).connect(masterFilterNode);
+                subOsc.frequency.setValueAtTime(110, now);
+                subOsc.frequency.exponentialRampToValueAtTime(25, now + 1.8);
+                
+                subOsc.volume.setValueAtTime(-2, now);
+                subOsc.volume.exponentialRampToValueAtTime(-40, now + 1.8);
+                
+                subOsc.start();
+                setTimeout(() => {
+                    subOsc.stop();
+                    subOsc.dispose();
+                }, 1900);
+
+            } else if (id === 'pad-zap') {
+                // Sharp FM Psy Zap
+                const fmOsc = new Tone.FMSynth({
+                    modulationIndex: 12,
+                    harmonicity: 2.5,
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0 },
+                    modulationEnvelope: { attack: 0.001, decay: 0.08, sustain: 0 }
+                }).connect(masterFilterNode);
+
+                fmOsc.triggerAttackRelease("E4", "8n");
+                setTimeout(() => fmOsc.dispose(), 300);
+
+            } else if (id === 'pad-space') {
+                // Pitch modulated cosmic riser noise
+                const osc = new Tone.Oscillator({ type: "sawtooth" }).connect(masterFilterNode);
+                const filter = new Tone.Filter(800, "lowpass").connect(masterFilterNode);
+                osc.connect(filter);
+                
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(880, now + 2.5);
+                filter.frequency.linearRampToValueAtTime(3000, now + 2.5);
+                
+                osc.volume.setValueAtTime(-15, now);
+                osc.volume.exponentialRampToValueAtTime(-40, now + 2.6);
+                
+                osc.start();
+                setTimeout(() => {
+                    osc.stop();
+                    osc.dispose();
+                    filter.dispose();
+                }, 2700);
+
+            } else if (id === 'pad-chord1') {
+                // Deep hypnotizing Minor Trance chord hit
+                polyPadSynth.triggerAttackRelease(["E3", "G3", "B3", "D4"], "2n");
+
+            } else if (id === 'pad-chord2') {
+                // Major Trance euphoric progression hit
+                polyPadSynth.triggerAttackRelease(["C3", "E3", "G3", "B3"], "2n");
+
+            } else if (id === 'pad-noise') {
+                // Vintage Vinyl Crackle Rise filter sweep
+                const noise = new Tone.Noise({ type: "pink" }).start();
+                const bpf = new Tone.Filter({ type: "bandpass", frequency: 400, Q: 3 }).connect(masterFilterNode);
+                noise.connect(bpf);
+                
+                bpf.frequency.exponentialRampToValueAtTime(8000, now + 1.5);
+                noise.volume.setValueAtTime(-15, now);
+                noise.volume.exponentialRampToValueAtTime(-45, now + 1.6);
+                
+                setTimeout(() => {
+                    noise.stop();
+                    noise.dispose();
+                    bpf.dispose();
+                }, 1700);
+
+            } else if (id === 'pad-laser') {
+                // Laser Echo synth beam
+                const laser = new Tone.Synth({
+                    oscillator: { type: "sawtooth" },
+                    envelope: { attack: 0.005, decay: 0.3, sustain: 0 }
+                }).connect(masterFilterNode);
+
+                laser.triggerAttackRelease("C5", "4n");
+                laser.frequency.setValueAtTime(1046, now);
+                laser.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                
+                setTimeout(() => laser.dispose(), 500);
+            }
+        }
+
+        // --- CANVAS REAL-TIME STEREO VISUALIZER ---
+        function renderVisualizer() {
+            if (!isPowerOn) return;
+
+            requestAnimationFrame(renderVisualizer);
+
+            const width = canvas.width = canvas.clientWidth;
+            const height = canvas.height = canvas.clientHeight;
+
+            // Fetch dynamic analyser audio frequency or wave data arrays
+            const values = masterAnalyserNode.getValue();
+            
+            // Clear Frame with nice translucent dark overlay
+            canvasCtx.fillStyle = 'rgba(3, 7, 18, 0.4)';
+            canvasCtx.fillRect(0, 0, width, height);
+
+            // Draw beautiful matrix grid lines for background DJ monitor aesthetic
+            canvasCtx.strokeStyle = 'rgba(31, 41, 55, 0.15)';
+            canvasCtx.lineWidth = 1;
+            const gridSize = 20;
+            for (let x = 0; x < width; x += gridSize) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(x, 0);
+                canvasCtx.lineTo(x, height);
+                canvasCtx.stroke();
+            }
+            for (let y = 0; y < height; y += gridSize) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, y);
+                canvasCtx.lineTo(width, y);
+                canvasCtx.stroke();
+            }
+
+            // Draw primary waveform/frequency audio path
+            canvasCtx.beginPath();
+            canvasCtx.lineWidth = 2.5;
+
+            // Use gradient stroke for gorgeous cyberpunk neon aesthetics
+            const gradient = canvasCtx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#06b6d4'); // Cyan-500
+            gradient.addColorStop(0.5, '#8b5cf6'); // Violet-500
+            gradient.addColorStop(1, '#a855f7'); // Purple-500
+            canvasCtx.strokeStyle = gradient;
+
+            const sliceWidth = width / values.length;
+            let x = 0;
+
+            for (let i = 0; i < values.length; i++) {
+                // Normalized scale value
+                const val = values[i]; 
+                
+                let y;
+                if (visualizerMode === 'wave') {
+                    // Oscilloscope Mode (normalized float centered around 0)
+                    y = ((val + 1) / 2) * height;
+                } else {
+                    // Spectrum Mode (FFT output in dB scale)
+                    const normalizedDb = (val + 140) / 140; // DB ranges roughly -140 to 0
+                    y = height - (normalizedDb * height);
+                }
+
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            canvasCtx.stroke();
+
+            // Add simple floating visualizer glow particle hits on peak frequencies
+            canvasCtx.fillStyle = '#06b6d4';
+            const samplePeak = values[Math.floor(values.length / 2)];
+            if (samplePeak > 0.3) {
+                canvasCtx.beginPath();
+                canvasCtx.arc(width / 2, height / 2, Math.abs(samplePeak) * 35, 0, 2 * Math.PI);
+                canvasCtx.fillStyle = 'rgba(6, 182, 212, 0.1)';
+                canvasCtx.fill();
+            }
+        }
+
+        // --- CONTROL ATTRIBUTES & ACTION EVENT BINDINGS ---
+        function setupEventListeners() {
+            
+            // Power ON / SUSPEND Engine toggling
+            powerBtn.addEventListener('click', () => {
+                if (!isPowerOn) {
+                    initializeAudio();
+                } else {
+                    suspendAudio();
+                }
+            });
+
+            // Start Sequences transport trigger
+            playBtn.addEventListener('click', () => {
+                if (!isPlaying) {
+                    startSequence();
+                } else {
+                    stopSequence();
+                }
+            });
+
+            // Reset sequencer playback sequence
+            stopBtn.addEventListener('click', () => {
+                stopSequence();
+            });
+
+            // BPM slider input mappings
+            bpmSlider.addEventListener('input', (e) => {
+                activeBpm = parseInt(e.target.value);
+                bpmDisplay.innerText = activeBpm;
+                if (isPowerOn) {
+                    Tone.Transport.bpm.value = activeBpm;
+                }
+            });
+
+            // Volume input mappings
+            volSlider.addEventListener('input', (e) => {
+                activeVolume = parseInt(e.target.value);
+                volDisplay.innerText = activeVolume;
+                if (isPowerOn) {
+                    // Set master gain db values directly
+                    const db = Tone.gainToDb(activeVolume / 100);
+                    masterGainNode.gain.setValueAtTime(Tone.dbToGain(db), Tone.now());
+                }
+            });
+
+            // Custom combined DJ sweeps filter slide configuration
+            filterSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value); // 0 -> 100 scale
+
+                if (!isPowerOn) return;
+
+                if (val < 45) {
+                    // Lowpass filter sweep mapping (left side)
+                    masterFilterNode.type = "lowpass";
+                    // Map range 0-45 to exponential frequency 200Hz - 20000Hz
+                    const progress = val / 45;
+                    const freq = Math.max(120, Math.pow(progress, 2.5) * 20000);
+                    masterFilterNode.frequency.setValueAtTime(freq, Tone.now());
+                    filterLabel.innerText = `LP: ${Math.round(freq)} Hz`;
+                } else if (val > 55) {
+                    // Highpass filter sweep mapping (right side)
+                    masterFilterNode.type = "highpass";
+                    // Map range 55-100 to exponential frequency 20Hz - 8000Hz
+                    const progress = (val - 55) / 45;
+                    const freq = Math.pow(progress, 3) * 6000;
+                    masterFilterNode.frequency.setValueAtTime(freq, Tone.now());
+                    filterLabel.innerText = `HP: ${Math.round(freq)} Hz`;
+                } else {
+                    // Dead center bypass
+                    masterFilterNode.type = "lowpass";
+                    masterFilterNode.frequency.setValueAtTime(22000, Tone.now());
+                    filterLabel.innerText = "BYPASS";
+                }
+            });
+
+            // Delay effect volume level mapping
+            delaySlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                delayVal.innerText = `${val}%`;
+                if (isPowerOn) {
+                    masterDelayNode.wet.value = val / 100;
+                }
+            });
+
+            // Reverb Wet/Dry damp mapping
+            reverbSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                reverbVal.innerText = `${val}%`;
+                if (isPowerOn) {
+                    masterReverbNode.wet.value = val / 100;
+                }
+            });
+
+            // Lead Synth resonances settings sliders
+            synthResSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value) / 100;
+                if (isPowerOn && bassSynth) {
+                    // Adjust bass and lead parameters dynamically
+                    bassSynth.filter.Q.value = val * 5;
+                }
+            });
+
+            // Lead Glide transition controls
+            synthGlideSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value) / 100;
+                if (isPowerOn && leadSynth) {
+                    leadSynth.portamento = val * 0.4;
+                }
+            });
+
+            // Arpeggio Direction Selectors
+            arpUpBtn.addEventListener('click', () => {
+                arpPattern = 'UP';
+                arpUpBtn.className = 'px-2 py-0.5 bg-cyan-950 border border-cyan-800 text-cyan-400 text-[10px] font-bold rounded';
+                arpDownBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+                arpRandBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+            });
+
+            arpDownBtn.addEventListener('click', () => {
+                arpPattern = 'DOWN';
+                arpUpBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+                arpDownBtn.className = 'px-2 py-0.5 bg-cyan-950 border border-cyan-800 text-cyan-400 text-[10px] font-bold rounded';
+                arpRandBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+            });
+
+            arpRandBtn.addEventListener('click', () => {
+                arpPattern = 'RAND';
+                arpUpBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+                arpDownBtn.className = 'px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold rounded';
+                arpRandBtn.className = 'px-2 py-0.5 bg-cyan-950 border border-cyan-800 text-cyan-400 text-[10px] font-bold rounded';
+            });
+
+            // Toggle Visualizer Display Mode Tabs
+            vizTypeWave.addEventListener('click', () => {
+                visualizerMode = 'wave';
+                if (masterAnalyserNode) masterAnalyserNode.type = 'waveform';
+                vizTypeWave.className = 'px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded font-bold uppercase transition';
+                vizTypeFreq.className = 'px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200 rounded font-bold uppercase transition';
+            });
+
+            vizTypeFreq.addEventListener('click', () => {
+                visualizerMode = 'freq';
+                if (masterAnalyserNode) masterAnalyserNode.type = 'fft';
+                vizTypeFreq.className = 'px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded font-bold uppercase transition';
+                vizTypeWave.className = 'px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200 rounded font-bold uppercase transition';
+            });
+
+            // Preset Minimal loop loading configuration
+            presetMinimalBtn.addEventListener('click', () => {
+                TRACKS.forEach(t => {
+                    currentPattern[t.id] = [...t.defaultPattern];
+                });
+                renderSequencerUI();
+                presetMinimalBtn.className = 'px-3 py-1 bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-semibold rounded-lg transition';
+                presetPsyBtn.className = 'px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-lg transition hover:bg-slate-700';
+            });
+
+            // Preset Harder/Psy pattern load options
+            presetPsyBtn.addEventListener('click', () => {
+                TRACKS.forEach(t => {
+                    currentPattern[t.id] = [...ALT_PATTERNS[t.id]];
+                });
+                renderSequencerUI();
+                presetPsyBtn.className = 'px-3 py-1 bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-semibold rounded-lg transition';
+                presetMinimalBtn.className = 'px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 font-semibold rounded-lg transition hover:bg-slate-700';
+            });
+
+            // Clear Step Sequence fully
+            clearSeqBtn.addEventListener('click', () => {
+                TRACKS.forEach(t => {
+                    currentPattern[t.id] = Array(16).fill(0);
+                });
+                renderSequencerUI();
+            });
+
+            // Master keyboard spacebar triggers play/pause
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault(); // Stop window scrolling
+                    if (!isPowerOn) {
+                        initializeAudio();
+                        setTimeout(startSequence, 100);
+                    } else {
+                        if (isPlaying) stopSequence();
+                        else startSequence();
+                    }
+                }
+            });
+        }
+
+        // --- DECK BOOTSTRAP INITIALIZATION ON PAGE LOAD ---
+        window.onload = function () {
+            // Render basic static components
+            renderSequencerUI();
+            renderKeyboard();
+            registerFXPadTriggers();
+            setupEventListeners();
+        }
+    </script>
+</body>
+</html>
