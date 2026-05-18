@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sacred Geometry & Ethereal Soundscape</title>
+
+    <script src="topnav.js"></script>
+    
     <style>
         :root {
             --bg-color: #030305;
@@ -126,34 +129,6 @@
     </style>
 </head>
 <body>
-
-<!--<div style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background-color: transparent; display: flex; justify-content: flex-end; flex-wrap: wrap; padding: 10px 10px;">
-        <a href="index.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Home</a> 
-        
-        <a href="dj.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">DJ</a>
-        
-        <a href="sacred.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Sacred Geometry</a>
-        
-        <a href="sounds.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Visual Sounds</a>
-        
-        <a href="touch.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Touch Chords</a>
-    </div>-->
-
     
     <div class="ui-container" id="ui">
         <button id="btnSound">
@@ -174,8 +149,8 @@
         Enable Sound & Drag to Draw
     </div>
 
-    <canvas id="bgCanvas"></canvas>
-    <canvas id="fgCanvas"></canvas>
+    <canvas id="bgCanvas" class="fit-canvas"></canvas>
+    <canvas id="fgCanvas" class="fit-canvas"></canvas>
 
     <script>
         // --- VISUAL SETUP ---
