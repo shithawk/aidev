@@ -1,10 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Aura Touch Synth & FX Canvas</title>
+
+  <script src="topnav.js"></script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -27,34 +29,6 @@
 </head>
 <body class="w-screen h-screen flex flex-col justify-between text-slate-100 font-sans select-none">
 
-<div style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background-color: transparent; display: flex; justify-content: flex-end; flex-wrap: wrap; padding: 10px 10px;">
-        <a href="index.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Home</a> 
-        
-        <a href="dj.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">DJ</a>
-        
-        <a href="sacred.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Sacred Geometry</a>
-        
-        <a href="sounds.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Visual Sounds</a>
-        
-        <a href="touch.html" 
-           style="display: block; color: #f2f2f2; text-align: center; padding: 10px 10px; text-decoration: none; font-size: 15px; transition: background-color 0.3s, color 0.3s;"
-           onmouseover="this.style.backgroundColor='#ddd'; this.style.color='black'; this.style.borderRadius='4px';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f2f2f2';">Touch Chords</a>
-    </div>
-
-  
   <!-- Top Instrument & FX Dashboard -->
   <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-4 z-10 flex flex-wrap gap-4 items-center justify-between">
     <div class="flex items-center gap-3">
@@ -128,7 +102,7 @@
     </div>
 
     <!-- Live Canvas -->
-    <canvas id="synthCanvas" class="w-full h-full"></canvas>
+    <canvas id="synthCanvas" class="fit-canvas"></canvas>
 
     <!-- Bottom Instructions Hud overlay -->
     <div class="absolute bottom-6 left-6 right-6 pointer-events-none flex justify-between items-end">
