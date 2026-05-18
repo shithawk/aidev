@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <li><a href="sacred.html">Sacred Geometry</a></li>
             <li><a href="sounds.html">Sound Trails</a></li>
             <li><a href="touch.html">Touch Chords</a></li>
+            <li><a href="songs.html">Dog Songs</a></li>
         </ul>
     `;
 
