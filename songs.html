@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Songs MP3 Player</title>
+  
+    <script src="topnav.js"></script>
+  
+    <!-- Include Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        
+        .song-item {
+            transition: all 0.3s ease;
+        }
+        
+        .song-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom styling for the audio element */
+        audio {
+            width: 100%;
+            border-radius: 0.5rem;
+            outline: none;
+        }
+        
+        audio::-webkit-media-controls-panel {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-gray-800">
+
+  
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-3xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            
+            <!-- Header Section of the Player -->
+            <div class="bg-indigo-600 p-8 text-white text-center">
+                <h1 class="text-3xl font-bold mb-2">Songs about dogs</h1>
+            </div>
+
+            <!-- Playlist Section -->
+            <div class="p-6 space-y-6">
+                
+                <!-- Song 1: Buddy -->
+                <div class="song-item bg-gray-50 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
+                   
+                    
+                    <div class="flex-grow w-full">
+                        <div class="mb-2 text-center md:text-left">
+                            <h2 class="text-xl font-semibold text-gray-900">Buddy's Theme</h2>
+                            <p class="text-sm text-gray-500">buddy.mp3</p>
+                        </div>
+                        <!-- Audio Player for Buddy -->
+                        <div class="w-full">
+                            <audio controls class="shadow-sm">
+                                <source src="buddy.mp3" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Song 2: Willy -->
+                <div class="song-item bg-gray-50 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
+                    
+                    
+                    <div class="flex-grow w-full">
+                        <div class="mb-2 text-center md:text-left">
+                            <h2 class="text-xl font-semibold text-gray-900">Willy's Jam</h2>
+                            <p class="text-sm text-gray-500">willy.mp3</p>
+                        </div>
+                        <!-- Audio Player for Willy -->
+                        <div class="w-full">
+                            <audio controls class="shadow-sm">
+                                <source src="willy.mp3" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-gray-50 p-4 border-t border-gray-100 text-center text-sm text-gray-500">
+                <p>Note: Audio files need to be present in the same directory to play.</p>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Page Footer -->
+    <footer class="bg-gray-800 text-white text-center py-6 mt-auto">
+        <p class="text-sm text-gray-400">&copy; 2026 Shoreline Labs. All rights reserved.</p>
+    </footer>
+
+   
+    <script>
+        // Basic script to log if topnav.js is missing (since it's a simulated environment)
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Page loaded. Looking for topnav.js...");
+            
+            // Add error handling for audio files to show a user-friendly message if they are missing
+            const audioElements = document.querySelectorAll('audio');
+            audioElements.forEach(audio => {
+                audio.addEventListener('error', function(e) {
+                    const src = this.querySelector('source').getAttribute('src');
+                    console.warn(`Audio file "${src}" could not be loaded. This is expected if the file doesn't exist locally.`);
+                    
+                    // Optional: Show a subtle visual indicator that the file is missing
+                    this.parentElement.insertAdjacentHTML('afterend', `<p class="text-xs text-red-500 mt-1 italic text-center md:text-left">File '${src}' not found locally.</p>`);
+                }, true); // Use capture phase to catch resource loading errors
+            });
+        });
+    </script>
+</body>
+</html>
