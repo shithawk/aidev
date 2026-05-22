@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI earth grid</title>
+  <meta name="description" content="Canvas pixels x y">
+  <meta name="author" content="ShitHawk">
+
+<script type="text/javascript">
+
+
+
+
+function init() {
+	var startX = 600; // X position of stem cell
+	var startY = 600; // Y position of stem cell
+	var colourS = 8; // random colour seed 1-16
+	var ctx = document.getElementById('earth').getContext("2d");
+	ctx.fillRect(startX,startY,1,1);
+
+	for (i = 0; i <= 1000000; i++) {
+	startX = startX + Math.floor((Math.random()*3)+1) - 2;
+	startY = startY + Math.floor((Math.random()*3)+1) - 2;
+	ctx.fillStyle='#'+Math.floor(Math.random()*16777215).toString(colourS);	
+	ctx.fillRect(startX,startY,1,1);
+	}
+    }
+
+
+
+function custom() {
+
+	startX = document.aivalues.formX.value;
+	startY = document.aivalues.formY.value;
+	colourS = document.aivalues.formC.value;
+	var ctx = document.getElementById('earth').getContext("2d");
+	ctx.fillRect(startX,startY,1,1);
+
+	for (i = 0; i <= 1000000; i++) {
+	startX = startX + Math.floor((Math.random()*3)+1) - 2;
+	startY = startY + Math.floor((Math.random()*3)+1) - 2;
+	ctx.fillStyle='#'+Math.floor(Math.random()*16777215).toString(colourS);	
+	ctx.fillRect(startX,startY,1,1);
+	}
+    }
+
+
+</script>
+
+</head>
+<body onload="init()">
+
+<form name="aivalues">    
+X position start value 0-1200: <input name="formX" value="600"><br/>
+Y position start value 0-1200: <input name="formY" value="600"><br/>
+Random colour seed 1-16 (16 for all the colours): <input name="formC" value="8"><br/>
+</form>
+
+<button onclick="init()">draw ONE MILLION more random pixels</button> 
+(it takes a few seconds) Refresh (F5) to start over.<br/><br/>
+
+<canvas id="earth" width="1200" height="1200" style="border:1px solid #eeeeee;">Sorry, your browser doesn't support the canvas element.</canvas>
+
+</body>
+</html>
+
+
+
+
+
+	<script type="text/javascript">
+		
+ // test
+	</script>
+
+
+
+<!-- Hosting24 Analytics Code -->
+<script type="text/javascript" src="http://stats.hosting24.com/count.php"></script>
+<!-- End Of Analytics Code -->
