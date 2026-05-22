@@ -97,11 +97,10 @@
 <body>
 
     <div class="container">
-        <h2>Cryptographic Random Walk</h2>
-        <p>Wiggle your mouse over the page to charge the human entropy pool.</p>
+        <h2>Unique ID generator</h2>
 
         <div class="entropy-status" id="entropyStatus">
-            Entropy Pool: 0% charged (Move your mouse!)
+            Random seed: 0% charged (Move your mouse!)
         </div>
 
         <div class="controls">
@@ -146,7 +145,7 @@
             if (entropyPool.length < MAX_ENTROPY) {
                 entropyPool.push(e.pageX, e.pageY, performance.now());
                 const percent = Math.min(100, Math.floor((entropyPool.length / MAX_ENTROPY) * 100));
-                entropyStatus.textContent = `Entropy Pool: ${percent}% charged (Human physical noise added)`;
+                entropyStatus.textContent = `Entropy: ${percent}% charged (Noise added)`;
                 if (percent === 100) entropyStatus.style.color = '#4ade80';
             }
         });
