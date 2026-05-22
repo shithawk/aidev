@@ -1,41 +1,77 @@
 // ─────────────────────────────────────────
-//  SHORELINE WAVE  |  Step 2: The wave line
+//  SHORELINE WAVE  |  Step 4: Layers + fill
 // ─────────────────────────────────────────
 //
 //  New this step:
-//  - sin()           smooth oscillation between -1 and +1
-//  - beginShape()    start drawing a custom shape
-//  - vertex(x, y)    add a point to that shape
-//  - endShape()      finish and draw the line
+//  - fill()          colour inside a shape (with alpha for transparency)
+//  - endShape(CLOSE) closes the shape back to the start point
+//  - two waves       drawn back-to-front — drawing order is depth
 
-// These two numbers control how the wave looks — tweak them freely
-let amplitude = 60;   // how TALL the wave is (pixels up/down from centre)
-let frequency = 0.02; // how WIDE each wave is (lower = wider waves)
+// ── Wave 1 — back, deep ocean ─────────────
+let amp1    = 50;
+let freq1   = 0.015;  // wider, slower — deep water
+let speed1  = 0.025;
+let offset1 = 0;
+
+// ── Wave 2 — front, shoreline ─────────────
+let amp2    = 70;
+let freq2   = 0.022;  // tighter, faster — surface chop
+let speed2  = 0.04;
+let offset2 = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
-  background(10, 22, 40); // deep ocean — repaint every frame
+  background(10, 22, 40);
 
-  // Wave line style
-  stroke(93, 202, 165);   // seafoam green from the Shoreline palette
-  strokeWeight(2);         // line thickness in pixels
-  noFill();                // we're drawing a line, not a filled shape
+  // ── Draw back wave first (it goes behind) ──────────────────────────────
+  //
+  // fill(R, G, B, Alpha) — alpha 0=invisible, 255=solid
+  // stroke is the outline, fill is the inside
+  fill(24, 95, 165, 120);   // ocean blue, semi-transparent
+  stroke(24, 95, 165, 180);
+  strokeWeight(1.5);
 
-  // Draw the wave across the full width of the canvas
+  drawWave(amp1, freq1, offset1, 30); // 30px = vertical offset from centre
+
+  // ── Draw front wave on top ─────────────────────────────────────────────
+  fill(93, 202, 165, 150);  // seafoam, semi-transparent
+  stroke(93, 202, 165, 220);
+  strokeWeight(2);
+
+  drawWave(amp2, freq2, offset2, 0);
+
+  // ── Advance both offsets ───────────────────────────────────────────────
+  offset1 += speed1;
+  offset2 += speed2;
+}
+
+// ── Wave drawing function ──────────────────────────────────────────────────
+//
+// Instead of copy-pasting the loop twice, we wrap it in a function.
+// verticalShift nudges a wave up or down from centre.
+
+function drawWave(amplitude, frequency, offset, verticalShift) {
+  let centreY = height / 2 + verticalShift;
+
   beginShape();
 
-    for (let x = 0; x <= width; x += 5) {
-      // sin() needs an angle — multiply x by frequency to spread the wave out
-      // multiply the result by amplitude to scale it up from ±1 to ±60px
-      let y = height / 2 + sin(x * frequency) * amplitude;
+    // Start at the bottom-left corner — this anchors the fill
+    vertex(0, height);
 
-      vertex(x, y); // place a point at this (x, y) position
+    // Walk across the screen drawing the wave curve
+    for (let x = 0; x <= width; x += 5) {
+      let y = centreY + sin(x * frequency + offset) * amplitude;
+      vertex(x, y);
     }
 
-  endShape();
+    // End at the bottom-right corner — closes the fill area
+    vertex(width, height);
+
+  endShape(CLOSE); // CLOSE connects the last point back to the first (bottom-left)
+                   // this seals the shape so fill() has something to paint
 }
 
 function windowResized() {
