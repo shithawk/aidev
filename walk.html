@@ -38,7 +38,7 @@
             cursor: crosshair;
             margin-bottom: 10px;
         }
-        input {
+        input[type="number"] {
             padding: 10px;
             width: 150px;
             border-radius: 6px;
@@ -78,6 +78,7 @@
             word-break: break-all;
             margin-top: 15px;
             min-height: 24px;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -86,7 +87,7 @@
     <div class="container">
         <h2>Cryptographic Random Walk</h2>
         <p>Wiggle your mouse over the page to charge the human entropy pool.</p>
-        
+
         <div class="entropy-status" id="entropyStatus">
             Entropy Pool: 0% charged (Move your mouse!)
         </div>
@@ -97,23 +98,23 @@
                 <input type="number" id="stepCount" min="100" max="1000000" value="100000">
             </div>
             <button id="startBtn">Generate Walk</button>
+            <button id="clearBtn">Clear</button>
         </div>
 
-        <!-- The Drawing Canvas -->
         <canvas id="walkCanvas" width="800" height="600"></canvas>
-        
-        <!-- The Output Box for the Security Hash -->
+
         <div class="security-code-box" id="securityCode">
             Awaiting walk completion...
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('walkCanvas');
-        const ctx = canvas.getContext('2d');
-        const startBtn = document.getElementById('startBtn');
-        const inputSteps = document.getElementById('stepCount');
-        const entropyStatus = document.getElementById('entropyStatus');
+        const canvas      = document.getElementById('walkCanvas');
+        const ctx         = canvas.getContext('2d');
+        const startBtn    = document.getElementById('startBtn');
+        const clearBtn    = document.getElementById('clearBtn');
+        const inputSteps  = document.getElementById('stepCount');
+        const entropyStatus   = document.getElementById('entropyStatus');
         const securityCodeBox = document.getElementById('securityCode');
 
         let animationId;
@@ -123,72 +124,72 @@
         // --- 1. COLLECT HUMAN PHYSICAL ENTROPY ---
         window.addEventListener('mousemove', (e) => {
             if (entropyPool.length < MAX_ENTROPY) {
-                // Capturing precise coordinates and microsecond timestamps
                 entropyPool.push(e.pageX, e.pageY, performance.now());
-                const percent = Math.floor((entropyPool.length / MAX_ENTROPY) * 100);
-                entropyStatus.innerText = `Entropy Pool: ${percent}% charged (Human physical noise added)`;
-                if (percent === 100) entropyStatus.style.color = "#4ade80";
+                const percent = Math.min(100, Math.floor((entropyPool.length / MAX_ENTROPY) * 100));
+                entropyStatus.textContent = `Entropy Pool: ${percent}% charged (Human physical noise added)`;
+                if (percent === 100) entropyStatus.style.color = '#4ade80';
             }
         });
 
         // --- 2. HARDWARE-BASED RANDOMNESS (Web Crypto API) ---
         function getHardwareRandom() {
             const array = new Uint32Array(1);
-            // Taps into OS-level entropy (thermal noise, etc.)
             window.crypto.getRandomValues(array);
             return array[0];
         }
 
         // --- 3. CRYPTOGRAPHIC HASHING ---
         async function generateSecurityCode() {
-            securityCodeBox.innerText = "Calculating secure SHA-256 hash...";
-            securityCodeBox.style.color = "#fbbf24"; // Yellow while calculating
+            securityCodeBox.textContent = 'Calculating secure SHA-256 hash...';
+            securityCodeBox.style.color = '#fbbf24';
 
-            // Get raw image data as Base64
-            const dataUrl = canvas.toDataURL("image/png");
-            
-            // Convert to byte array
-            const encoder = new TextEncoder();
-            const data = encoder.encode(dataUrl);
-            
-            // Hash the data using SHA-256
+            const dataUrl   = canvas.toDataURL('image/png');
+            const encoder   = new TextEncoder();
+            const data      = encoder.encode(dataUrl);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            
-            // Convert buffer to hex string
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            // Display result
-            securityCodeBox.innerText = `Unique Image Hash:\n${hashHex}`;
-            securityCodeBox.style.color = "#4ade80"; // Green for success
+            const hashHex   = Array.from(new Uint8Array(hashBuffer))
+                                   .map(b => b.toString(16).padStart(2, '0'))
+                                   .join('');
+
+            securityCodeBox.textContent = `Unique Image Hash:\n${hashHex}`;
+            securityCodeBox.style.color = '#4ade80';
         }
 
-        // --- 4. MAIN DRAWING LOOP ---
+        // --- 4. CLEAR CANVAS ---
+        function resetCanvas() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            securityCodeBox.textContent = 'Awaiting walk completion...';
+            securityCodeBox.style.color = '#94a3b8';
+        }
+
+        clearBtn.addEventListener('click', resetCanvas);
+
+        // --- 5. MAIN DRAWING LOOP ---
         startBtn.addEventListener('click', () => {
             if (animationId) cancelAnimationFrame(animationId);
 
-            // Reset the UI for a new run
-            securityCodeBox.innerText = "Walk in progress...";
-            securityCodeBox.style.color = "#94a3b8";
+            securityCodeBox.textContent = 'Walk in progress...';
+            securityCodeBox.style.color = '#94a3b8';
 
             let totalSteps = parseInt(inputSteps.value, 10);
             if (isNaN(totalSteps) || totalSteps < 100) totalSteps = 100;
             if (totalSteps > 1000000) totalSteps = 1000000;
             inputSteps.value = totalSteps;
 
-            // Clear canvas
-            ctx.fillStyle = "white";
+            ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Start in the center
-            let x = Math.floor(canvas.width / 2);
+            let x = Math.floor(canvas.width  / 2);
             let y = Math.floor(canvas.height / 2);
-            
-            // Trail style
+
             ctx.fillStyle = 'rgba(0, 102, 255, 0.6)';
 
             let stepsTaken = 0;
-            // Adaptive batch size
             const batchSize = Math.max(200, Math.floor(totalSteps / 150));
 
             function drawBatch() {
@@ -197,20 +198,21 @@
                 while (stepsThisFrame < batchSize && stepsTaken < totalSteps) {
                     ctx.fillRect(x, y, 1, 1);
 
-                    // Combine hardware noise with human movement noise
                     const hardwareNoise = getHardwareRandom();
-                    const humanNoise = entropyPool.length > 0 ? entropyPool[stepsTaken % entropyPool.length] : 0;
-                    
+                    const humanNoise    = entropyPool.length > 0
+                        ? entropyPool[stepsTaken % entropyPool.length]
+                        : 0;
+
                     const direction = (hardwareNoise + Math.floor(humanNoise)) % 4;
 
-                    if (direction === 0) y -= 1;
+                    if      (direction === 0) y -= 1;
                     else if (direction === 1) y += 1;
                     else if (direction === 2) x -= 1;
-                    else if (direction === 3) x += 1;
+                    else                      x += 1;
 
                     // Boundary collision
                     if (x < 0) x = 0;
-                    if (x >= canvas.width) x = canvas.width - 1;
+                    if (x >= canvas.width)  x = canvas.width  - 1;
                     if (y < 0) y = 0;
                     if (y >= canvas.height) y = canvas.height - 1;
 
@@ -219,17 +221,16 @@
                 }
 
                 if (stepsTaken < totalSteps) {
-                    // Continue walking
                     animationId = requestAnimationFrame(drawBatch);
                 } else {
-                    // Walk is completely finished, generate the code
+                    animationId = null;
                     generateSecurityCode();
                 }
             }
 
-            // Start the first batch
             drawBatch();
         });
     </script>
 </body>
 </html>
+
