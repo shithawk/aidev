@@ -3,14 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // 1. Define your Navigation HTML here
     const navHTML = `
-        <!--<div class="nav-brand">My Website</div>-->
+        
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="dj.html">DJ Loops</a></li>
+            <li><a href="dj.html">DJ</a></li>
             <li><a href="sacred.html">Sacred Geometry</a></li>
             <li><a href="sounds.html">Sound Trails</a></li>
             <li><a href="touch.html">Touch Chords</a></li>
-            <li><a href="songs.html">Dog Songs</a></li>
+            <li><a href="songs.html">Songs</a></li>
+            <li><a href="walk.html">Random Walk</a></li>
         </ul>
     `;
 
