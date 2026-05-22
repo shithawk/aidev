@@ -1,31 +1,43 @@
 // ─────────────────────────────────────────
-//  SHORELINE WAVE  |  Step 1: The canvas
+//  SHORELINE WAVE  |  Step 2: The wave line
 // ─────────────────────────────────────────
 //
-//  Every p5.js sketch has two core functions:
-//
-//  setup()  → runs ONCE when the page loads
-//             use it to create the canvas and set initial values
-//
-//  draw()   → runs in a LOOP, ~60 times per second
-//             use it to draw, update, and animate
-//
-//  Think of draw() as the tide — it never stops.
+//  New this step:
+//  - sin()           smooth oscillation between -1 and +1
+//  - beginShape()    start drawing a custom shape
+//  - vertex(x, y)    add a point to that shape
+//  - endShape()      finish and draw the line
+
+// These two numbers control how the wave looks — tweak them freely
+let amplitude = 60;   // how TALL the wave is (pixels up/down from centre)
+let frequency = 0.02; // how WIDE each wave is (lower = wider waves)
 
 function setup() {
-  // createCanvas(width, height)
-  // windowWidth / windowHeight = the browser window size
   createCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
-  // background() repaints the canvas every frame
-  // without it, everything you draw stacks up and smears
-  // using a dark ocean colour from the Shoreline palette
-  background(10, 22, 40);  // R, G, B — deep ocean
+  background(10, 22, 40); // deep ocean — repaint every frame
+
+  // Wave line style
+  stroke(93, 202, 165);   // seafoam green from the Shoreline palette
+  strokeWeight(2);         // line thickness in pixels
+  noFill();                // we're drawing a line, not a filled shape
+
+  // Draw the wave across the full width of the canvas
+  beginShape();
+
+    for (let x = 0; x <= width; x += 5) {
+      // sin() needs an angle — multiply x by frequency to spread the wave out
+      // multiply the result by amplitude to scale it up from ±1 to ±60px
+      let y = height / 2 + sin(x * frequency) * amplitude;
+
+      vertex(x, y); // place a point at this (x, y) position
+    }
+
+  endShape();
 }
 
-// Bonus: if the browser window is resized, resize the canvas too
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
