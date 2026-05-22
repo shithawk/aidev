@@ -106,7 +106,7 @@
         <div class="controls">
             <div>
                 <label for="stepCount">Moves: </label>
-                <input type="number" id="stepCount" min="100" max="1000000" value="1000000">
+                <input type="number" id="stepCount" min="1000" max="1000000" value="1000000">
             </div>
             <button id="startBtn">Generate Walk</button>
             <button id="clearBtn">Clear</button>
@@ -220,7 +220,7 @@
             securityCodeBox.style.color = '#94a3b8';
 
             let totalSteps = parseInt(inputSteps.value, 10);
-            if (isNaN(totalSteps) || totalSteps < 100) totalSteps = 100;
+            if (isNaN(totalSteps) || totalSteps < 1000) totalSteps = 1000;
             if (totalSteps > 1000000) totalSteps = 1000000;
             inputSteps.value = totalSteps;
 
