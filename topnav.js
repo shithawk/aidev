@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const navStyles = `
         :root {
             /* Calculated standard height for the navigation header */
-            --nav-height: 60px;
+            --nav-height: 50px;
             /* Colors from the Elemental Brand Palette */
             --color-basalt: #282828;
             --color-ocean: #0E63B4;
