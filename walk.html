@@ -68,6 +68,15 @@
             color: #94a3b8;
             margin-bottom: 15px;
         }
+        .color-swatch {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid #475569;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
         .security-code-box {
             background: #0f172a;
             border: 1px solid #475569;
@@ -101,6 +110,12 @@
             <button id="clearBtn">Clear</button>
         </div>
 
+        <!-- Current path colour indicator -->
+        <div style="margin-bottom: 12px; font-size: 0.9rem; color: #94a3b8;">
+            Path colour: <span id="colorLabel">—</span>
+            <span class="color-swatch" id="colorSwatch"></span>
+        </div>
+
         <canvas id="walkCanvas" width="800" height="600"></canvas>
 
         <div class="security-code-box" id="securityCode">
@@ -109,13 +124,15 @@
     </div>
 
     <script>
-        const canvas      = document.getElementById('walkCanvas');
-        const ctx         = canvas.getContext('2d');
-        const startBtn    = document.getElementById('startBtn');
-        const clearBtn    = document.getElementById('clearBtn');
-        const inputSteps  = document.getElementById('stepCount');
+        const canvas          = document.getElementById('walkCanvas');
+        const ctx             = canvas.getContext('2d');
+        const startBtn        = document.getElementById('startBtn');
+        const clearBtn        = document.getElementById('clearBtn');
+        const inputSteps      = document.getElementById('stepCount');
         const entropyStatus   = document.getElementById('entropyStatus');
         const securityCodeBox = document.getElementById('securityCode');
+        const colorLabel      = document.getElementById('colorLabel');
+        const colorSwatch     = document.getElementById('colorSwatch');
 
         let animationId;
         let entropyPool = [];
@@ -138,24 +155,46 @@
             return array[0];
         }
 
-        // --- 3. CRYPTOGRAPHIC HASHING ---
+        // --- 3. GENERATE A RANDOM VIVID PATH COLOUR ---
+        // Uses Web Crypto for the hue so the colour is hardware-seeded too.
+        // Fully-saturated HSL ensures the path is always vivid on a white canvas.
+        function getRandomPathColor() {
+            const array = new Uint8Array(1);
+            window.crypto.getRandomValues(array);
+            const hue = Math.floor((array[0] / 255) * 360);  // 0-359 degrees
+            const hex = hslToHex(hue, 90, 40);               // vivid, dark enough to read
+            return { hue, hex };
+        }
+
+        // Convert HSL to a hex colour string
+        function hslToHex(h, s, l) {
+            s /= 100;
+            l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+            return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+        }
+
+        // --- 4. CRYPTOGRAPHIC HASHING ---
         async function generateSecurityCode() {
             securityCodeBox.textContent = 'Calculating secure SHA-256 hash...';
             securityCodeBox.style.color = '#fbbf24';
 
-            const dataUrl   = canvas.toDataURL('image/png');
-            const encoder   = new TextEncoder();
-            const data      = encoder.encode(dataUrl);
+            const dataUrl    = canvas.toDataURL('image/png');
+            const encoder    = new TextEncoder();
+            const data       = encoder.encode(dataUrl);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashHex   = Array.from(new Uint8Array(hashBuffer))
-                                   .map(b => b.toString(16).padStart(2, '0'))
-                                   .join('');
+            const hashHex    = Array.from(new Uint8Array(hashBuffer))
+                                    .map(b => b.toString(16).padStart(2, '0'))
+                                    .join('');
 
             securityCodeBox.textContent = `Unique Image Hash:\n${hashHex}`;
             securityCodeBox.style.color = '#4ade80';
         }
 
-        // --- 4. CLEAR CANVAS ---
+        // --- 5. CLEAR CANVAS ---
         function resetCanvas() {
             if (animationId) {
                 cancelAnimationFrame(animationId);
@@ -165,11 +204,13 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             securityCodeBox.textContent = 'Awaiting walk completion...';
             securityCodeBox.style.color = '#94a3b8';
+            colorLabel.textContent = '—';
+            colorSwatch.style.backgroundColor = '';
         }
 
         clearBtn.addEventListener('click', resetCanvas);
 
-        // --- 5. MAIN DRAWING LOOP ---
+        // --- 6. MAIN DRAWING LOOP ---
         startBtn.addEventListener('click', () => {
             if (animationId) cancelAnimationFrame(animationId);
 
@@ -181,13 +222,18 @@
             if (totalSteps > 1000000) totalSteps = 1000000;
             inputSteps.value = totalSteps;
 
+            // Pick a new random colour for this run and show it
+            const { hue, hex } = getRandomPathColor();
+            colorLabel.textContent = hex.toUpperCase();
+            colorSwatch.style.backgroundColor = hex;
+
+            // Clear canvas, then restore path colour
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = `hsla(${hue}, 90%, 40%, 0.6)`;
 
             let x = Math.floor(canvas.width  / 2);
             let y = Math.floor(canvas.height / 2);
-
-            ctx.fillStyle = 'rgba(0, 102, 255, 0.6)';
 
             let stepsTaken = 0;
             const batchSize = Math.max(200, Math.floor(totalSteps / 150));
@@ -233,4 +279,3 @@
     </script>
 </body>
 </html>
-
